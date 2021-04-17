@@ -5,13 +5,22 @@ The project will be written in Golang and must use microservices.
 ## Installation
 ### install Gokit-CLI
     ```sh
+
         go get github.com/kujtimiihoxha/kit
+
     ```
 ### install glide
     ```sh
-        curl https://glide.sh/get | sh
-    ```
 
+        curl https://glide.sh/get | sh
+
+    ```
+### install Go-Kit
+    ```sh
+
+        glide get github.com/go-kit/kit
+
+    ```
 ## Documentation
  * https://medium.com/@kujtimii.h/creating-a-todo-app-using-gokit-cli-20f066a58e1
  * https://golang.org/doc/
