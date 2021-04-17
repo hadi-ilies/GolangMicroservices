@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"golangmicroservices/ads/domain"
-
-	"gitlab.com/CamillePolice/golangmicroservices/ads/pkg/domain"
+	"golangmicroservices/ads/pkg/domain"
 )
 
 // AdsService describes the service.
@@ -23,4 +21,45 @@ type AdsService interface {
 	GetAllByKeyWord(ctx context.Context, keywords string) ([]domain.Ad, error)
 	// - Get a list of all the ads of a user
 	GetAllByUser(ctx context.Context, username string) ([]domain.Ad, error)
+}
+
+type basicAdsService struct{}
+
+func (b *basicAdsService) Create(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+	// TODO implement the business logic of Create
+	return d0, e1
+}
+func (b *basicAdsService) Update(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+	// TODO implement the business logic of Update
+	return d0, e1
+}
+func (b *basicAdsService) Delete(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+	// TODO implement the business logic of Delete
+	return d0, e1
+}
+func (b *basicAdsService) Get(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+	// TODO implement the business logic of Get
+	return d0, e1
+}
+func (b *basicAdsService) GetAllByKeyWord(ctx context.Context, keywords string) (d0 []domain.Ad, e1 error) {
+	// TODO implement the business logic of GetAllByKeyWord
+	return d0, e1
+}
+func (b *basicAdsService) GetAllByUser(ctx context.Context, username string) (d0 []domain.Ad, e1 error) {
+	// TODO implement the business logic of GetAllByUser
+	return d0, e1
+}
+
+// NewBasicAdsService returns a naive, stateless implementation of AdsService.
+func NewBasicAdsService() AdsService {
+	return &basicAdsService{}
+}
+
+// New returns a AdsService with all of the expected middleware wired in.
+func New(middleware []Middleware) AdsService {
+	var svc AdsService = NewBasicAdsService()
+	for _, m := range middleware {
+		svc = m(svc)
+	}
+	return svc
 }

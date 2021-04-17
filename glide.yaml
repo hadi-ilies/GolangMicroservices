@@ -1,4 +1,0 @@
-package: .
-import:
-- package: github.com/go-kit/kit
-  version: ^0.10.0
