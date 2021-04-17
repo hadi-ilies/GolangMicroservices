@@ -7,11 +7,6 @@ The project will be written in Golang and must use microservices.
     ```
         go get github.com/kujtimiihoxha/kit
     ```
-### install Go-Kit
-    ```
-        glide get github.com/go-kit/kit
-    ```
-
 ### install dependency
     ```
         go mod download
