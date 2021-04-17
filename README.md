@@ -3,10 +3,13 @@
 The project will be written in Golang and must use microservices.
 
 ## Installation
-### install Gokit-CLI
+### install Gokit-CLI (needed if you want to create a service by your own)
     ```
-        go get github.com/kujtimiihoxha/kit
+        git clone https://github.com/GrantZheng/kit.git
+        cd kit
+        go install
     ```
+Note: we need to install GrantZheng version bcs the real version is not updated anymore. DONT CLONE THE REPO INSIDE THE REPOSITORY
 ### install dependency
     ```
         go mod download
