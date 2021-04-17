@@ -1,0 +1,32 @@
+version: "2"
+services:
+  accounts:
+    build:
+      context: .
+      dockerfile: accounts/Dockerfile
+    restart: always
+    volumes:
+    - .:/go/src/golangmicroservices
+    container_name: accounts
+    ports:
+    - 8802:8081
+  ads:
+    build:
+      context: .
+      dockerfile: ads/Dockerfile
+    restart: always
+    volumes:
+    - .:/go/src/golangmicroservices
+    container_name: ads
+    ports:
+    - 8800:8081
+  transactions:
+    build:
+      context: .
+      dockerfile: transactions/Dockerfile
+    restart: always
+    volumes:
+    - .:/go/src/golangmicroservices
+    container_name: transactions
+    ports:
+    - 8801:8081
