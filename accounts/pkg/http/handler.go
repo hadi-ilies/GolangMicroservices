@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	endpoint "golangmicroservices/accounts/pkg/endpoint"
+	http1 "net/http"
+
 	http "github.com/go-kit/kit/transport/http"
 	handlers "github.com/gorilla/handlers"
 	mux "github.com/gorilla/mux"
-	endpoint "golangmicroservices/accounts/pkg/endpoint"
-	http1 "net/http"
 )
 
 // makeSignUpHandler creates the handler logic
@@ -113,15 +114,14 @@ func encodeDeleteResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeGetHandler creates the handler logic
 func makeGetHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/get").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.GetEndpoint, decodeGetRequest, encodeGetResponse, options...)))
+	m.Methods("GET").Path("/").Handler(handlers.CORS(handlers.AllowedMethods([]string{"GET"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.GetEndpoint, decodeGetRequest, encodeGetResponse, options...)))
 }
 
 // decodeGetRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetRequest(_ context.Context, r *http1.Request) (interface{}, error) {
 	req := endpoint.GetRequest{}
-	err := json.NewDecoder(r.Body).Decode(&req)
-	return req, err
+	return req, nil
 }
 
 // encodeGetResponse is a transport/http.EncodeResponseFunc that encodes

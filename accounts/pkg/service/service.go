@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"golangmicroservices/accounts/pkg/db"
 	"golangmicroservices/accounts/pkg/domain"
 )
 
@@ -45,6 +46,13 @@ func (b *basicAccountsService) Delete(ctx context.Context) (e0 error) {
 }
 func (b *basicAccountsService) Get(ctx context.Context) (d0 domain.Account, e1 error) {
 	// TODO implement the business logic of Get
+	session, err := db.GetMongoSession()
+	if err != nil {
+		return d0, e1
+	}
+	defer session.Close()
+	c := session.DB("my_store").C("accounts")
+	e1 = c.Find(nil).All(&d0)
 	return d0, e1
 }
 func (b *basicAccountsService) GetUserInfo(ctx context.Context, username string) (d0 domain.Account, e1 error) {
