@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:latest
 
 RUN mkdir -p /go/src/golangmicroservices
 
