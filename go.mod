@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
+	github.com/canthefason/go-watcher v0.2.4 // indirect
+	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-kit/kit v0.9.0
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
