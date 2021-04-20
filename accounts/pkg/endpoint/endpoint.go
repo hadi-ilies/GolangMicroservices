@@ -2,9 +2,10 @@ package endpoint
 
 import (
 	"context"
-	endpoint "github.com/go-kit/kit/endpoint"
 	domain "golangmicroservices/accounts/pkg/domain"
 	service "golangmicroservices/accounts/pkg/service"
+
+	endpoint "github.com/go-kit/kit/endpoint"
 )
 
 // SignUpRequest collects the request parameters for the SignUp method.
@@ -37,13 +38,13 @@ func (r SignUpResponse) Failed() error {
 
 // SignInRequest collects the request parameters for the SignIn method.
 type SignInRequest struct {
-	Account domain.Account `json:"account"`
+	Account domain.Auth `json:"auth"`
 }
 
 // SignInResponse collects the response parameters for the SignIn method.
 type SignInResponse struct {
-	D0 domain.Account `json:"d0"`
-	E1 error          `json:"e1"`
+	D0 string `json:"d0"`
+	E1 error  `json:"e1"`
 }
 
 // MakeSignInEndpoint returns an endpoint that invokes SignIn on the service.
@@ -117,8 +118,8 @@ type GetRequest struct{}
 
 // GetResponse collects the response parameters for the Get method.
 type GetResponse struct {
-	D0 domain.Account `json:"d0"`
-	E1 error          `json:"e1"`
+	D0 []domain.Account `json:"d0"`
+	E1 error            `json:"e1"`
 }
 
 // MakeGetEndpoint returns an endpoint that invokes Get on the service.
@@ -211,7 +212,7 @@ func (e Endpoints) SignUp(ctx context.Context, account domain.Account) (d0 domai
 }
 
 // SignIn implements Service. Primarily useful in a client.
-func (e Endpoints) SignIn(ctx context.Context, account domain.Account) (d0 domain.Account, e1 error) {
+func (e Endpoints) SignIn(ctx context.Context, account domain.Auth) (d0 string, e1 error) {
 	request := SignInRequest{Account: account}
 	response, err := e.SignInEndpoint(ctx, request)
 	if err != nil {
@@ -241,7 +242,7 @@ func (e Endpoints) Delete(ctx context.Context) (e0 error) {
 }
 
 // Get implements Service. Primarily useful in a client.
-func (e Endpoints) Get(ctx context.Context) (d0 domain.Account, e1 error) {
+func (e Endpoints) Get(ctx context.Context) (d0 []domain.Account, e1 error) {
 	request := GetRequest{}
 	response, err := e.GetEndpoint(ctx, request)
 	if err != nil {

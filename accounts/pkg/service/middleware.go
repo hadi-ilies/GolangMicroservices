@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	log "github.com/go-kit/kit/log"
 	domain "golangmicroservices/accounts/pkg/domain"
+
+	log "github.com/go-kit/kit/log"
 )
 
 // Middleware describes a service middleware.
@@ -29,7 +30,7 @@ func (l loggingMiddleware) SignUp(ctx context.Context, account domain.Account) (
 	}()
 	return l.next.SignUp(ctx, account)
 }
-func (l loggingMiddleware) SignIn(ctx context.Context, account domain.Account) (d0 domain.Account, e1 error) {
+func (l loggingMiddleware) SignIn(ctx context.Context, account domain.Auth) (d0 string, e1 error) {
 	defer func() {
 		l.logger.Log("method", "SignIn", "account", account, "d0", d0, "e1", e1)
 	}()
@@ -47,7 +48,7 @@ func (l loggingMiddleware) Delete(ctx context.Context) (e0 error) {
 	}()
 	return l.next.Delete(ctx)
 }
-func (l loggingMiddleware) Get(ctx context.Context) (d0 domain.Account, e1 error) {
+func (l loggingMiddleware) Get(ctx context.Context) (d0 []domain.Account, e1 error) {
 	defer func() {
 		l.logger.Log("method", "Get", "d0", d0, "e1", e1)
 	}()

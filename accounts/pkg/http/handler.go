@@ -14,7 +14,12 @@ import (
 
 // makeSignUpHandler creates the handler logic
 func makeSignUpHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/sign-up").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.SignUpEndpoint, decodeSignUpRequest, encodeSignUpResponse, options...)))
+	m.Methods("POST", "OPTIONS").Path("/signUp").Handler(
+		handlers.CORS(
+			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
+			handlers.AllowedMethods([]string{"POST"}),
+		)(http.NewServer(endpoints.SignUpEndpoint, decodeSignUpRequest, encodeSignUpResponse, options...)))
 }
 
 // decodeSignUpRequest is a transport/http.DecodeRequestFunc that decodes a
@@ -39,7 +44,7 @@ func encodeSignUpResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeSignInHandler creates the handler logic
 func makeSignInHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/sign-in").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.SignInEndpoint, decodeSignInRequest, encodeSignInResponse, options...)))
+	m.Methods("POST").Path("/signIn").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.SignInEndpoint, decodeSignInRequest, encodeSignInResponse, options...)))
 }
 
 // decodeSignInRequest is a transport/http.DecodeRequestFunc that decodes a
@@ -64,7 +69,12 @@ func encodeSignInResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeUpdateHandler creates the handler logic
 func makeUpdateHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/update").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.UpdateEndpoint, decodeUpdateRequest, encodeUpdateResponse, options...)))
+	m.Methods("PUT", "OPTIONS").Path("/set-complete").Handler(
+		handlers.CORS(
+			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
+			handlers.AllowedMethods([]string{"PUT"}),
+			handlers.AllowedOrigins([]string{"*"}),
+		)(http.NewServer(endpoints.UpdateEndpoint, decodeUpdateRequest, encodeUpdateResponse, options...)))
 }
 
 // decodeUpdateRequest is a transport/http.DecodeRequestFunc that decodes a
@@ -89,7 +99,12 @@ func encodeUpdateResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeDeleteHandler creates the handler logic
 func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/delete").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.DeleteEndpoint, decodeDeleteRequest, encodeDeleteResponse, options...)))
+	m.Methods("DELETE", "OPTIONS").Path("/delete").Handler(
+		handlers.CORS(
+			handlers.AllowedMethods([]string{"DELETE"}),
+			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
+			handlers.AllowedOrigins([]string{"*"}),
+		)(http.NewServer(endpoints.DeleteEndpoint, decodeDeleteRequest, encodeDeleteResponse, options...)))
 }
 
 // decodeDeleteRequest is a transport/http.DecodeRequestFunc that decodes a
@@ -138,7 +153,12 @@ func encodeGetResponse(ctx context.Context, w http1.ResponseWriter, response int
 
 // makeGetUserInfoHandler creates the handler logic
 func makeGetUserInfoHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/get-user-info").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.GetUserInfoEndpoint, decodeGetUserInfoRequest, encodeGetUserInfoResponse, options...)))
+	m.Methods("POST", "OPTIONS").Path("/GetUserInfo").Handler(
+		handlers.CORS(
+			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
+			handlers.AllowedMethods([]string{"POST"}),
+		)(http.NewServer(endpoints.GetUserInfoEndpoint, decodeGetUserInfoRequest, encodeGetUserInfoResponse, options...)))
 }
 
 // decodeGetUserInfoRequest is a transport/http.DecodeRequestFunc that decodes a

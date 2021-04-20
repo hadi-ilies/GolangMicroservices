@@ -4,6 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	endpoint "golangmicroservices/accounts/pkg/endpoint"
+	http1 "golangmicroservices/accounts/pkg/http"
+	service "golangmicroservices/accounts/pkg/service"
+	"net"
+	http2 "net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	endpoint1 "github.com/go-kit/kit/endpoint"
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -15,16 +24,8 @@ import (
 	http "github.com/openzipkin/zipkin-go/reporter/http"
 	prometheus1 "github.com/prometheus/client_golang/prometheus"
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
-	endpoint "golangmicroservices/accounts/pkg/endpoint"
-	http1 "golangmicroservices/accounts/pkg/http"
-	service "golangmicroservices/accounts/pkg/service"
-	"net"
-	http2 "net/http"
-	"os"
-	"os/signal"
 	appdash "sourcegraph.com/sourcegraph/appdash"
 	opentracing "sourcegraph.com/sourcegraph/appdash/opentracing"
-	"syscall"
 )
 
 var tracer opentracinggo.Tracer
