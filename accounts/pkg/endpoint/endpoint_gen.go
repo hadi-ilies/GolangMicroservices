@@ -14,6 +14,7 @@ type Endpoints struct {
 	SignInEndpoint      endpoint.Endpoint
 	UpdateEndpoint      endpoint.Endpoint
 	DeleteEndpoint      endpoint.Endpoint
+	MeEndpoint          endpoint.Endpoint
 	GetEndpoint         endpoint.Endpoint
 	GetUserInfoEndpoint endpoint.Endpoint
 	AddFundsEndpoint    endpoint.Endpoint
@@ -27,6 +28,7 @@ func New(s service.AccountsService, mdw map[string][]endpoint.Middleware) Endpoi
 		DeleteEndpoint:      MakeDeleteEndpoint(s),
 		GetEndpoint:         MakeGetEndpoint(s),
 		GetUserInfoEndpoint: MakeGetUserInfoEndpoint(s),
+		MeEndpoint:          MakeMeEndpoint(s),
 		SignInEndpoint:      MakeSignInEndpoint(s),
 		SignUpEndpoint:      MakeSignUpEndpoint(s),
 		UpdateEndpoint:      MakeUpdateEndpoint(s),
@@ -42,6 +44,9 @@ func New(s service.AccountsService, mdw map[string][]endpoint.Middleware) Endpoi
 	}
 	for _, m := range mdw["Delete"] {
 		eps.DeleteEndpoint = m(eps.DeleteEndpoint)
+	}
+	for _, m := range mdw["Me"] {
+		eps.MeEndpoint = m(eps.MeEndpoint)
 	}
 	for _, m := range mdw["Get"] {
 		eps.GetEndpoint = m(eps.GetEndpoint)

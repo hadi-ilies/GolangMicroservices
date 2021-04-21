@@ -30,3 +30,11 @@ services:
     container_name: transactions
     ports:
       - 8801:8081
+  mongodb:
+    image: mongo:4.2
+    container_name: mongodb
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    ports:
+      - 27017:27017

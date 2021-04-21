@@ -25,6 +25,7 @@ func defaultHttpOptions(logger log.Logger, tracer opentracinggo.Tracer) map[stri
 		"Delete":      {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Delete", logger))},
 		"Get":         {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Get", logger))},
 		"GetUserInfo": {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetUserInfo", logger))},
+		"Me":          {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Me", logger))},
 		"SignIn":      {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "SignIn", logger))},
 		"SignUp":      {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "SignUp", logger))},
 		"Update":      {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Update", logger))},
@@ -36,6 +37,7 @@ func addDefaultEndpointMiddleware(logger log.Logger, duration *prometheus.Summar
 	mw["SignIn"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "SignIn")), endpoint.InstrumentingMiddleware(duration.With("method", "SignIn"))}
 	mw["Update"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Update")), endpoint.InstrumentingMiddleware(duration.With("method", "Update"))}
 	mw["Delete"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Delete")), endpoint.InstrumentingMiddleware(duration.With("method", "Delete"))}
+	mw["Me"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Me")), endpoint.InstrumentingMiddleware(duration.With("method", "Me"))}
 	mw["Get"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Get")), endpoint.InstrumentingMiddleware(duration.With("method", "Get"))}
 	mw["GetUserInfo"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "GetUserInfo")), endpoint.InstrumentingMiddleware(duration.With("method", "GetUserInfo"))}
 	mw["AddFunds"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "AddFunds")), endpoint.InstrumentingMiddleware(duration.With("method", "AddFunds"))}
@@ -44,7 +46,7 @@ func addDefaultServiceMiddleware(logger log.Logger, mw []service.Middleware) []s
 	return append(mw, service.LoggingMiddleware(logger))
 }
 func addEndpointMiddlewareToAllMethods(mw map[string][]endpoint1.Middleware, m endpoint1.Middleware) {
-	methods := []string{"SignUp", "SignIn", "Update", "Delete", "Get", "GetUserInfo", "AddFunds"}
+	methods := []string{"SignUp", "SignIn", "Update", "Delete", "Me", "Get", "GetUserInfo", "AddFunds"}
 	for _, v := range methods {
 		mw[v] = append(mw[v], m)
 	}

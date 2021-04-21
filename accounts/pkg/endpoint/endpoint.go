@@ -2,9 +2,10 @@ package endpoint
 
 import (
 	"context"
-	endpoint "github.com/go-kit/kit/endpoint"
 	domain "golangmicroservices/accounts/pkg/domain"
 	service "golangmicroservices/accounts/pkg/service"
+
+	endpoint "github.com/go-kit/kit/endpoint"
 )
 
 // SignUpRequest collects the request parameters for the SignUp method.
@@ -37,13 +38,13 @@ func (r SignUpResponse) Failed() error {
 
 // SignInRequest collects the request parameters for the SignIn method.
 type SignInRequest struct {
-	Account domain.Account `json:"account"`
+	Account domain.Auth `json:"auth"`
 }
 
 // SignInResponse collects the response parameters for the SignIn method.
 type SignInResponse struct {
-	D0 domain.Account `json:"d0"`
-	E1 error          `json:"e1"`
+	D0 string `json:"d0"`
+	E1 error  `json:"e1"`
 }
 
 // MakeSignInEndpoint returns an endpoint that invokes SignIn on the service.
@@ -92,7 +93,9 @@ func (r UpdateResponse) Failed() error {
 }
 
 // DeleteRequest collects the request parameters for the Delete method.
-type DeleteRequest struct{}
+type DeleteRequest struct {
+	Token string `json:"-"`
+}
 
 // DeleteResponse collects the response parameters for the Delete method.
 type DeleteResponse struct {
@@ -102,7 +105,8 @@ type DeleteResponse struct {
 // MakeDeleteEndpoint returns an endpoint that invokes Delete on the service.
 func MakeDeleteEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		e0 := s.Delete(ctx)
+		req := request.(DeleteRequest)
+		e0 := s.Delete(ctx, req.Token)
 		return DeleteResponse{E0: e0}, nil
 	}
 }
@@ -117,8 +121,8 @@ type GetRequest struct{}
 
 // GetResponse collects the response parameters for the Get method.
 type GetResponse struct {
-	D0 domain.Account `json:"d0"`
-	E1 error          `json:"e1"`
+	D0 []domain.Account `json:"d0"`
+	E1 error            `json:"e1"`
 }
 
 // MakeGetEndpoint returns an endpoint that invokes Get on the service.
@@ -167,6 +171,7 @@ func (r GetUserInfoResponse) Failed() error {
 
 // AddFundsRequest collects the request parameters for the AddFunds method.
 type AddFundsRequest struct {
+	Token string `json:"-"`
 	Funds uint64 `json:"funds"`
 }
 
@@ -180,7 +185,7 @@ type AddFundsResponse struct {
 func MakeAddFundsEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(AddFundsRequest)
-		d0, e1 := s.AddFunds(ctx, req.Funds)
+		d0, e1 := s.AddFunds(ctx, req.Token, req.Funds)
 		return AddFundsResponse{
 			D0: d0,
 			E1: e1,
@@ -211,7 +216,7 @@ func (e Endpoints) SignUp(ctx context.Context, account domain.Account) (d0 domai
 }
 
 // SignIn implements Service. Primarily useful in a client.
-func (e Endpoints) SignIn(ctx context.Context, account domain.Account) (d0 domain.Account, e1 error) {
+func (e Endpoints) SignIn(ctx context.Context, account domain.Auth) (d0 string, e1 error) {
 	request := SignInRequest{Account: account}
 	response, err := e.SignInEndpoint(ctx, request)
 	if err != nil {
@@ -241,7 +246,7 @@ func (e Endpoints) Delete(ctx context.Context) (e0 error) {
 }
 
 // Get implements Service. Primarily useful in a client.
-func (e Endpoints) Get(ctx context.Context) (d0 domain.Account, e1 error) {
+func (e Endpoints) Get(ctx context.Context) (d0 []domain.Account, e1 error) {
 	request := GetRequest{}
 	response, err := e.GetEndpoint(ctx, request)
 	if err != nil {
@@ -268,4 +273,42 @@ func (e Endpoints) AddFunds(ctx context.Context, funds uint64) (d0 domain.Accoun
 		return
 	}
 	return response.(AddFundsResponse).D0, response.(AddFundsResponse).E1
+}
+
+// MeRequest collects the request parameters for the Me method.
+type MeRequest struct {
+	Token string `json:"-"`
+}
+
+// MeResponse collects the response parameters for the Me method.
+type MeResponse struct {
+	D0 domain.Account `json:"d0"`
+	E1 error          `json:"e1"`
+}
+
+// MakeMeEndpoint returns an endpoint that invokes Me on the service.
+func MakeMeEndpoint(s service.AccountsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(MeRequest)
+		d0, e1 := s.Me(ctx, req.Token)
+		return MeResponse{
+			D0: d0,
+			E1: e1,
+		}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r MeResponse) Failed() error {
+	return r.E1
+}
+
+// Me implements Service. Primarily useful in a client.
+func (e Endpoints) Me(ctx context.Context) (d0 domain.Account, e1 error) {
+	request := MeRequest{}
+	response, err := e.MeEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(MeResponse).D0, response.(MeResponse).E1
 }
