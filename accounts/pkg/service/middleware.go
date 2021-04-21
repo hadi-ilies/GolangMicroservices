@@ -66,3 +66,10 @@ func (l loggingMiddleware) AddFunds(ctx context.Context, funds uint64) (d0 domai
 	}()
 	return l.next.AddFunds(ctx, funds)
 }
+
+func (l loggingMiddleware) Me(ctx context.Context, token string) (d0 domain.Account, e1 error) {
+	defer func() {
+		l.logger.Log("method", "Me", "d0", d0, "e1", e1)
+	}()
+	return l.next.Me(ctx, token)
+}

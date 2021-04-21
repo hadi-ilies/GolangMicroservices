@@ -31,8 +31,7 @@ services:
     ports:
       - 8801:8081
   mongodb:
-    image: mongo:4.0
-    command: mongod --smallfiles --logpath=/dev/null
+    image: mongo:4.2
     container_name: mongodb
     environment:
       - MONGO_DATA_DIR=/data/db

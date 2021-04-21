@@ -12,7 +12,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var mySigningKey = []byte(os.Getenv("SECRET_KEY"))
+var MySigningKey = []byte(os.Getenv("SECRET_KEY"))
 
 func GetJWT() (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -23,9 +23,9 @@ func GetJWT() (string, error) {
 	claims["client"] = "Krissanawat"
 	claims["aud"] = "billing.jwtgo.io"
 	claims["iss"] = "jwtgo.io"
-	claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 60).Unix()
 
-	tokenString, err := token.SignedString(mySigningKey)
+	tokenString, err := token.SignedString(MySigningKey)
 
 	if err != nil {
 		fmt.Errorf("Something Went Wrong: %s", err.Error())
@@ -48,6 +48,8 @@ type AccountsService interface {
 	//Delete its own account
 	Delete(ctx context.Context) error
 	//Fully read its own account
+	Me(ctx context.Context, token string) (domain.Account, error)
+	//get all accounts //tmp
 	Get(ctx context.Context) ([]domain.Account, error)
 	//Partially read any user account
 	GetUserInfo(ctx context.Context, username string) (domain.Account, error)
@@ -84,9 +86,17 @@ func (b *basicAccountsService) SignIn(ctx context.Context, account domain.Auth) 
 	if err != nil {
 		return d0, err
 	}
+
+	//CHECK PASSWORD
+	if myAccount.Password != account.Password {
+		return d0, fmt.Errorf(("Wrong Password"))
+	}
 	//account exist
 	validToken, err := GetJWT()
 	fmt.Println(validToken)
+	myAccount.Token = validToken
+	//update current user Token
+	_, e1 = b.Update(ctx, myAccount)
 	return validToken, e1
 }
 func (b *basicAccountsService) Update(ctx context.Context, account domain.Account) (d0 domain.Account, e1 error) {
@@ -96,14 +106,19 @@ func (b *basicAccountsService) Update(ctx context.Context, account domain.Accoun
 		return d0, err
 	}
 	defer session.Close()
-	data, err := bson.Marshal(account)
-	e1 = err
-	if e1 != nil {
-		return d0, e1
-	}
+	// data, err := bson.Marshal(account)
+	// e1 = err
+	// if e1 != nil {
+	// 	return d0, e1
+	// }
 	c := session.DB("my_store").C("accounts")
-	e1 = c.Update(bson.M{"_id": bson.ObjectIdHex(string(account.Id))}, data)
-	e1 = c.Find(bson.M{"_id": bson.ObjectIdHex(string(account.Id))}).One(&d0)
+	fmt.Println("LOOOL1")
+	e1 = c.Update(bson.M{"_id": account.Id}, account)
+	if e1 != nil {
+		return account, e1
+	}
+	fmt.Println("LOOOL2")
+	e1 = c.Find(bson.M{"_id": account.Id}).One(&d0)
 	return d0, e1
 }
 func (b *basicAccountsService) Delete(ctx context.Context) (e0 error) {
@@ -158,4 +173,21 @@ func New(middleware []Middleware) AccountsService {
 		svc = m(svc)
 	}
 	return svc
+}
+
+func (b *basicAccountsService) Me(ctx context.Context, token string) (d0 domain.Account, e1 error) {
+	// TODO implement the business logic of Me
+	var myAccount domain.Account
+	session, err := db.GetMongoSession()
+	if err != nil {
+		return d0, err
+	}
+	defer session.Close()
+	c := session.DB("my_store").C("accounts")
+	e1 = c.Find(bson.M{"token": token}).One(&myAccount)
+	if err != nil {
+		return d0, err
+	}
+	d0 = myAccount
+	return d0, e1
 }

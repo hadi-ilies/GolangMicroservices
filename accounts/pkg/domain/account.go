@@ -20,4 +20,5 @@ type Account struct {
 	Username  string        `json:"username" bson:"username"`
 	Password  string        `json:"password" bson:"password"`
 	Balance   uint64        `json:"balance" bson:"balance"`
+	Token     string        `bson:"token" json:"-"`
 }

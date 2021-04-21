@@ -270,3 +270,41 @@ func (e Endpoints) AddFunds(ctx context.Context, funds uint64) (d0 domain.Accoun
 	}
 	return response.(AddFundsResponse).D0, response.(AddFundsResponse).E1
 }
+
+// MeRequest collects the request parameters for the Me method.
+type MeRequest struct {
+	Token string `json:"-"`
+}
+
+// MeResponse collects the response parameters for the Me method.
+type MeResponse struct {
+	D0 domain.Account `json:"d0"`
+	E1 error          `json:"e1"`
+}
+
+// MakeMeEndpoint returns an endpoint that invokes Me on the service.
+func MakeMeEndpoint(s service.AccountsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(MeRequest)
+		d0, e1 := s.Me(ctx, req.Token)
+		return MeResponse{
+			D0: d0,
+			E1: e1,
+		}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r MeResponse) Failed() error {
+	return r.E1
+}
+
+// Me implements Service. Primarily useful in a client.
+func (e Endpoints) Me(ctx context.Context) (d0 domain.Account, e1 error) {
+	request := MeRequest{}
+	response, err := e.MeEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(MeResponse).D0, response.(MeResponse).E1
+}
