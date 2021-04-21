@@ -46,7 +46,7 @@ type AccountsService interface {
 	//Update informations of its own account
 	Update(ctx context.Context, account domain.Account) (domain.Account, error)
 	//Delete its own account
-	Delete(ctx context.Context) error
+	Delete(ctx context.Context, token string) error
 	//Fully read its own account
 	Me(ctx context.Context, token string) (domain.Account, error)
 	//get all accounts //tmp
@@ -54,7 +54,7 @@ type AccountsService interface {
 	//Partially read any user account
 	GetUserInfo(ctx context.Context, username string) (domain.Account, error)
 	//Add funds to it's own balance
-	AddFunds(ctx context.Context, funds uint64) (domain.Account, error)
+	AddFunds(ctx context.Context, token string, funds uint64) (domain.Account, error)
 }
 
 type basicAccountsService struct{}
@@ -106,22 +106,15 @@ func (b *basicAccountsService) Update(ctx context.Context, account domain.Accoun
 		return d0, err
 	}
 	defer session.Close()
-	// data, err := bson.Marshal(account)
-	// e1 = err
-	// if e1 != nil {
-	// 	return d0, e1
-	// }
 	c := session.DB("my_store").C("accounts")
-	fmt.Println("LOOOL1")
 	e1 = c.Update(bson.M{"_id": account.Id}, account)
 	if e1 != nil {
 		return account, e1
 	}
-	fmt.Println("LOOOL2")
 	e1 = c.Find(bson.M{"_id": account.Id}).One(&d0)
 	return d0, e1
 }
-func (b *basicAccountsService) Delete(ctx context.Context) (e0 error) {
+func (b *basicAccountsService) Delete(ctx context.Context, token string) (e0 error) {
 	// TODO implement the business logic of Delete
 	session, err := db.GetMongoSession()
 	if err != nil {
@@ -129,8 +122,8 @@ func (b *basicAccountsService) Delete(ctx context.Context) (e0 error) {
 	}
 	defer session.Close()
 	//TODO find way to get od from token
-	// c := session.DB("my_store").C("accounts")
-	// return c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
+	c := session.DB("my_store").C("accounts")
+	e0 = c.Remove(bson.M{"token": token})
 	return e0
 }
 func (b *basicAccountsService) Get(ctx context.Context) (d0 []domain.Account, e1 error) {
@@ -156,8 +149,17 @@ func (b *basicAccountsService) GetUserInfo(ctx context.Context, username string)
 
 	return d0, e1
 }
-func (b *basicAccountsService) AddFunds(ctx context.Context, funds uint64) (d0 domain.Account, e1 error) {
+func (b *basicAccountsService) AddFunds(ctx context.Context, token string, funds uint64) (d0 domain.Account, e1 error) {
 	// TODO implement the business logic of AddFunds
+	session, err := db.GetMongoSession()
+	if err != nil {
+		return d0, e1
+	}
+	defer session.Close()
+	c := session.DB("my_store").C("accounts")
+	e1 = c.Find(bson.M{"token": token}).One(&d0)
+	d0.Balance += funds
+	d0, e1 = b.Update(ctx, d0)
 	return d0, e1
 }
 

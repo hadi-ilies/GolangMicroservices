@@ -138,7 +138,7 @@ func encodeUpdateResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeDeleteHandler creates the handler logic
 func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("DELETE", "OPTIONS").Path("/delete").Handler(
+	m.Methods("DELETE", "OPTIONS").Path("/").Handler(
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"DELETE"}),
 			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
@@ -149,13 +149,12 @@ func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeDeleteRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeDeleteRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	token, err := IsAuthorized(r)
 
 	if err != nil {
 		return nil, err
 	}
-	req := endpoint.DeleteRequest{}
-	err = json.NewDecoder(r.Body).Decode(&req)
+	req := endpoint.DeleteRequest{Token: token}
 	return req, err
 }
 
@@ -243,12 +242,12 @@ func makeAddFundsHandler(m *mux.Router, endpoints endpoint.Endpoints, options []
 // decodeAddFundsRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeAddFundsRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	token, err := IsAuthorized(r)
 
 	if err != nil {
 		return nil, err
 	}
-	req := endpoint.AddFundsRequest{}
+	req := endpoint.AddFundsRequest{Token: token}
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -300,7 +299,7 @@ func decodeMeRequest(_ context.Context, r *http1.Request) (interface{}, error) {
 		return nil, err
 	}
 	req := endpoint.MeRequest{Token: token}
-	return req, nil
+	return req, err
 }
 
 // encodeMeResponse is a transport/http.EncodeResponseFunc that encodes

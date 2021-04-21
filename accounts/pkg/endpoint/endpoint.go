@@ -93,7 +93,9 @@ func (r UpdateResponse) Failed() error {
 }
 
 // DeleteRequest collects the request parameters for the Delete method.
-type DeleteRequest struct{}
+type DeleteRequest struct {
+	Token string `json:"-"`
+}
 
 // DeleteResponse collects the response parameters for the Delete method.
 type DeleteResponse struct {
@@ -103,7 +105,8 @@ type DeleteResponse struct {
 // MakeDeleteEndpoint returns an endpoint that invokes Delete on the service.
 func MakeDeleteEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		e0 := s.Delete(ctx)
+		req := request.(DeleteRequest)
+		e0 := s.Delete(ctx, req.Token)
 		return DeleteResponse{E0: e0}, nil
 	}
 }
@@ -168,6 +171,7 @@ func (r GetUserInfoResponse) Failed() error {
 
 // AddFundsRequest collects the request parameters for the AddFunds method.
 type AddFundsRequest struct {
+	Token string `json:"-"`
 	Funds uint64 `json:"funds"`
 }
 
@@ -181,7 +185,7 @@ type AddFundsResponse struct {
 func MakeAddFundsEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(AddFundsRequest)
-		d0, e1 := s.AddFunds(ctx, req.Funds)
+		d0, e1 := s.AddFunds(ctx, req.Token, req.Funds)
 		return AddFundsResponse{
 			D0: d0,
 			E1: e1,
