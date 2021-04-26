@@ -21,7 +21,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.2
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/procfs v0.6.0 // indirect
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
+	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	google.golang.org/grpc v1.26.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22

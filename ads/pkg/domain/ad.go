@@ -8,6 +8,7 @@ import (
 type Ad struct {
 	// _id allow uniqueness of the field
 	Id         bson.ObjectId `json:"id" bson:"_id"`
+	UserID     bson.ObjectId `json:"user_id" bson:"user_id"`
 	Title      string        `json:"title"  bson:"title"`
 	Descripion string        `json:"description" bson:"description"`
 	Price      uint64        `json:"price" bson:"price"`
