@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   accounts:
     build:
@@ -9,7 +9,10 @@ services:
       - .:/go/src/golangmicroservices
     container_name: accounts
     ports:
-      - 8802:8081
+      - "8081:8081"
+    networks:
+      - db-network
+      - ads-network
   ads:
     build:
       context: .
@@ -19,7 +22,13 @@ services:
       - .:/go/src/golangmicroservices
     container_name: ads
     ports:
-      - 8800:8081
+      - "8082:8082"
+    networks:
+      - db-network
+      - ads-network
+    links:
+      ##allows us to reach the account microservice from ads microservice
+      - "accounts"
   transactions:
     build:
       context: .
@@ -29,7 +38,7 @@ services:
       - .:/go/src/golangmicroservices
     container_name: transactions
     ports:
-      - 8801:8081
+      - "8083:8083"
   mongodb:
     image: mongo:4.2
     container_name: mongodb
@@ -38,3 +47,9 @@ services:
       - MONGO_LOG_DIR=/dev/null
     ports:
       - 27017:27017
+    networks:
+      - db-network
+
+networks:
+  db-network:
+  ads-network:

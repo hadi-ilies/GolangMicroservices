@@ -2,9 +2,10 @@ package endpoint
 
 import (
 	"context"
-	endpoint "github.com/go-kit/kit/endpoint"
 	domain "golangmicroservices/ads/pkg/domain"
 	service "golangmicroservices/ads/pkg/service"
+
+	endpoint "github.com/go-kit/kit/endpoint"
 )
 
 // CreateRequest collects the request parameters for the Create method.
@@ -70,17 +71,15 @@ type DeleteRequest struct {
 
 // DeleteResponse collects the response parameters for the Delete method.
 type DeleteResponse struct {
-	D0 domain.Ad `json:"d0"`
-	E1 error     `json:"e1"`
+	E1 error `json:"e1"`
 }
 
 // MakeDeleteEndpoint returns an endpoint that invokes Delete on the service.
 func MakeDeleteEndpoint(s service.AdsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeleteRequest)
-		d0, e1 := s.Delete(ctx, req.Ad)
+		e1 := s.Delete(ctx, req.Ad)
 		return DeleteResponse{
-			D0: d0,
 			E1: e1,
 		}, nil
 	}
@@ -203,13 +202,13 @@ func (e Endpoints) Update(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 e
 }
 
 // Delete implements Service. Primarily useful in a client.
-func (e Endpoints) Delete(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+func (e Endpoints) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
 	request := DeleteRequest{Ad: ad}
 	response, err := e.DeleteEndpoint(ctx, request)
 	if err != nil {
 		return
 	}
-	return response.(DeleteResponse).D0, response.(DeleteResponse).E1
+	return response.(DeleteResponse).E1
 }
 
 // Get implements Service. Primarily useful in a client.

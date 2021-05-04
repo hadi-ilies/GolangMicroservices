@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	log "github.com/go-kit/kit/log"
 	domain "golangmicroservices/ads/pkg/domain"
+
+	log "github.com/go-kit/kit/log"
 )
 
 // Middleware describes a service middleware.
@@ -35,9 +36,9 @@ func (l loggingMiddleware) Update(ctx context.Context, ad domain.Ad) (d0 domain.
 	}()
 	return l.next.Update(ctx, ad)
 }
-func (l loggingMiddleware) Delete(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+func (l loggingMiddleware) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
 	defer func() {
-		l.logger.Log("method", "Delete", "ad", ad, "d0", d0, "e1", e1)
+		l.logger.Log("method", "Delete", "ad", ad, "e1", e1)
 	}()
 	return l.next.Delete(ctx, ad)
 }

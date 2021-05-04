@@ -103,7 +103,7 @@ func encodeSignInResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeUpdateHandler creates the handler logic
 func makeUpdateHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("PUT", "OPTIONS").Path("/set-complete").Handler(
+	m.Methods("PUT", "OPTIONS").Path("/").Handler(
 		handlers.CORS(
 			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
 			handlers.AllowedMethods([]string{"PUT"}),

@@ -4,6 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	endpoint "golangmicroservices/ads/pkg/endpoint"
+	http1 "golangmicroservices/ads/pkg/http"
+	service "golangmicroservices/ads/pkg/service"
+	"net"
+	http2 "net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	endpoint1 "github.com/go-kit/kit/endpoint"
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -15,16 +24,8 @@ import (
 	http "github.com/openzipkin/zipkin-go/reporter/http"
 	prometheus1 "github.com/prometheus/client_golang/prometheus"
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
-	endpoint "golangmicroservices/ads/pkg/endpoint"
-	http1 "golangmicroservices/ads/pkg/http"
-	service "golangmicroservices/ads/pkg/service"
-	"net"
-	http2 "net/http"
-	"os"
-	"os/signal"
 	appdash "sourcegraph.com/sourcegraph/appdash"
 	opentracing "sourcegraph.com/sourcegraph/appdash/opentracing"
-	"syscall"
 )
 
 var tracer opentracinggo.Tracer
@@ -34,7 +35,7 @@ var logger log.Logger
 // all* supported transports, but we do it here for demonstration purposes.
 var fs = flag.NewFlagSet("ads", flag.ExitOnError)
 var debugAddr = fs.String("debug-addr", ":8080", "Debug and metrics listen address")
-var httpAddr = fs.String("http-addr", ":8081", "HTTP listen address")
+var httpAddr = fs.String("http-addr", ":8082", "HTTP listen address")
 var grpcAddr = fs.String("grpc-addr", ":8082", "gRPC listen address")
 var thriftAddr = fs.String("thrift-addr", ":8083", "Thrift listen address")
 var thriftProtocol = fs.String("thrift-protocol", "binary", "binary, compact, json, simplejson")

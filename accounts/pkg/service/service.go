@@ -98,7 +98,6 @@ func (b *basicAccountsService) SignUp(ctx context.Context, account domain.Accoun
 	if err != nil {
 		return d0, err
 	}
-	//TODO remove balance from json
 	defer session.Close()
 	c := session.DB("my_store").C("accounts")
 	e1 = c.Insert(&account)

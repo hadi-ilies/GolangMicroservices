@@ -7,3 +7,5 @@ ADD . /go/src/golangmicroservices
 RUN go mod vendor
 
 CMD go run cmd/main.go
+
+EXPOSE 8082
