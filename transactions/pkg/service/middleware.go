@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	log "github.com/go-kit/kit/log"
 	domain "golangmicroservices/transactions/pkg/domain"
+
+	log "github.com/go-kit/kit/log"
 )
 
 // Middleware describes a service middleware.
@@ -41,9 +42,9 @@ func (l loggingMiddleware) Reject(ctx context.Context, transaction domain.Transa
 	}()
 	return l.next.Reject(ctx, transaction)
 }
-func (l loggingMiddleware) GetAll(ctx context.Context) (d0 []domain.Transaction, e1 error) {
+func (l loggingMiddleware) GetAll(ctx context.Context, accountID string) (d0 []domain.Transaction, e1 error) {
 	defer func() {
 		l.logger.Log("method", "GetAll", "d0", d0, "e1", e1)
 	}()
-	return l.next.GetAll(ctx)
+	return l.next.GetAll(ctx, accountID)
 }

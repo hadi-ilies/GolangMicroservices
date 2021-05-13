@@ -13,6 +13,7 @@ services:
     networks:
       - db-network
       - ads-network
+      - transactions-network
   ads:
     build:
       context: .
@@ -39,6 +40,12 @@ services:
     container_name: transactions
     ports:
       - "8083:8083"
+    networks:
+      - db-network
+      - transactions-network
+    links:
+      ##allows us to reach the account microservice from ads microservice
+      - "accounts"
   mongodb:
     image: mongo:4.2
     container_name: mongodb
@@ -53,3 +60,4 @@ services:
 networks:
   db-network:
   ads-network:
+  transactions-network:

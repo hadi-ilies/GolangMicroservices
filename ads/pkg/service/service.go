@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"golangmicroservices/ads/pkg/db"
 	"golangmicroservices/ads/pkg/domain"
 	"time"
@@ -20,11 +21,11 @@ type AdsService interface {
 	// - Delete one of its own ad
 	Delete(ctx context.Context, ad domain.Ad) error
 	// - Read any ad (get all ads)
-	Get(ctx context.Context, ad domain.Ad) (domain.Ad, error)
+	Get(ctx context.Context) ([]domain.Ad, error)
 	// - Get a list of ads searching by keywords
 	GetAllByKeyWord(ctx context.Context, keywords string) ([]domain.Ad, error)
-	// - Get a list of all the ads of a user
-	GetAllByUser(ctx context.Context, username string) ([]domain.Ad, error)
+	// - Get a list of all the ads of a user by clientID
+	GetAllByUser(ctx context.Context, targetAccountID string) ([]domain.Ad, error)
 }
 
 type basicAdsService struct{}
@@ -50,11 +51,11 @@ func (b *basicAdsService) Update(ctx context.Context, ad domain.Ad) (d0 domain.A
 	}
 	defer session.Close()
 	c := session.DB("my_store").C("ads")
-	e1 = c.Update(bson.M{"_id": ad.Id}, ad)
+	e1 = c.Update(bson.M{"_id": ad.Id, "account_id": ad.AccountID}, ad)
 	if e1 != nil {
 		return ad, e1
 	}
-	e1 = c.Find(bson.M{"_id": ad.Id}).One(&d0)
+	e1 = c.Find(bson.M{"_id": ad.Id, "account_id": ad.AccountID}).One(&d0)
 	return d0, e1
 }
 func (b *basicAdsService) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
@@ -69,7 +70,7 @@ func (b *basicAdsService) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
 	e1 = c.Remove(bson.M{"account_id": ad.AccountID, "_id": ad.Id})
 	return e1
 }
-func (b *basicAdsService) Get(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+func (b *basicAdsService) Get(ctx context.Context) (d0 []domain.Ad, e1 error) {
 	// TODO implement the business logic of Get
 	session, err := db.GetMongoSession()
 	if err != nil {
@@ -85,17 +86,17 @@ func (b *basicAdsService) GetAllByKeyWord(ctx context.Context, keywords string) 
 	// TODO implement the business logic of GetAllByKeyWord
 	return d0, e1
 }
-func (b *basicAdsService) GetAllByUser(ctx context.Context, username string) (d0 []domain.Ad, e1 error) {
+func (b *basicAdsService) GetAllByUser(ctx context.Context, targetAccountID string) (d0 []domain.Ad, e1 error) {
 	// TODO implement the business logic of GetAllByUser
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return d0, e1
 	}
 	defer session.Close()
-	c := session.DB("my_store").C("accounts")
+	c := session.DB("my_store").C("ads")
 	//TODO should be passed in request
-	var accountID int
-	e1 = c.Find(bson.M{"account_id": accountID}).All(&d0)
+	fmt.Println("DEBUGOS = ", targetAccountID)
+	e1 = c.Find(bson.M{"account_id": bson.ObjectIdHex(targetAccountID)}).All(&d0)
 
 	return d0, e1
 }

@@ -150,6 +150,7 @@ func decodeUpdateRequest(_ context.Context, r *http1.Request) (interface{}, erro
 	}
 	fmt.Println("myAccount = ", myAccount.Id)
 	req := endpoint.UpdateRequest{}
+	req.Ad.AccountID = myAccount.Id
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -168,14 +169,26 @@ func encodeUpdateResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeDeleteHandler creates the handler logic
 func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/delete").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.DeleteEndpoint, decodeDeleteRequest, encodeDeleteResponse, options...)))
+	m.Methods("DELETE").Path("/").Handler(handlers.CORS(handlers.AllowedMethods([]string{"DELETE"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.DeleteEndpoint, decodeDeleteRequest, encodeDeleteResponse, options...)))
 }
 
 // decodeDeleteRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeDeleteRequest(_ context.Context, r *http1.Request) (interface{}, error) {
+	token, err := IsAuthorized(r)
+
+	if err != nil {
+		return nil, err
+	}
+	//TODO make request to account microservice
+	myAccount, err := getAccount(token)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("myAccount = ", myAccount.Id)
 	req := endpoint.DeleteRequest{}
-	err := json.NewDecoder(r.Body).Decode(&req)
+	req.Ad.AccountID = myAccount.Id
+	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
 
@@ -193,14 +206,18 @@ func encodeDeleteResponse(ctx context.Context, w http1.ResponseWriter, response 
 
 // makeGetHandler creates the handler logic
 func makeGetHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST").Path("/get").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.GetEndpoint, decodeGetRequest, encodeGetResponse, options...)))
+	m.Methods("GET").Path("/").Handler(handlers.CORS(handlers.AllowedMethods([]string{"GET"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.GetEndpoint, decodeGetRequest, encodeGetResponse, options...)))
 }
 
 // decodeGetRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetRequest(_ context.Context, r *http1.Request) (interface{}, error) {
+	_, err := IsAuthorized(r)
+
+	if err != nil {
+		return nil, err
+	}
 	req := endpoint.GetRequest{}
-	err := json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
 
@@ -249,8 +266,13 @@ func makeGetAllByUserHandler(m *mux.Router, endpoints endpoint.Endpoints, option
 // decodeGetAllByUserRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetAllByUserRequest(_ context.Context, r *http1.Request) (interface{}, error) {
+	_, err := IsAuthorized(r)
+
+	if err != nil {
+		return nil, err
+	}
 	req := endpoint.GetAllByUserRequest{}
-	err := json.NewDecoder(r.Body).Decode(&req)
+	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
 

@@ -42,11 +42,11 @@ func (l loggingMiddleware) Delete(ctx context.Context, ad domain.Ad) (e1 error) 
 	}()
 	return l.next.Delete(ctx, ad)
 }
-func (l loggingMiddleware) Get(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
+func (l loggingMiddleware) Get(ctx context.Context) (d0 []domain.Ad, e1 error) {
 	defer func() {
-		l.logger.Log("method", "Get", "ad", ad, "d0", d0, "e1", e1)
+		l.logger.Log("method", "Get", "d0", d0, "e1", e1)
 	}()
-	return l.next.Get(ctx, ad)
+	return l.next.Get(ctx)
 }
 func (l loggingMiddleware) GetAllByKeyWord(ctx context.Context, keywords string) (d0 []domain.Ad, e1 error) {
 	defer func() {
@@ -54,9 +54,9 @@ func (l loggingMiddleware) GetAllByKeyWord(ctx context.Context, keywords string)
 	}()
 	return l.next.GetAllByKeyWord(ctx, keywords)
 }
-func (l loggingMiddleware) GetAllByUser(ctx context.Context, username string) (d0 []domain.Ad, e1 error) {
+func (l loggingMiddleware) GetAllByUser(ctx context.Context, targetAccountID string) (d0 []domain.Ad, e1 error) {
 	defer func() {
-		l.logger.Log("method", "GetAllByUser", "username", username, "d0", d0, "e1", e1)
+		l.logger.Log("method", "GetAllByUser", "targetAccountID", targetAccountID, "d0", d0, "e1", e1)
 	}()
-	return l.next.GetAllByUser(ctx, username)
+	return l.next.GetAllByUser(ctx, targetAccountID)
 }

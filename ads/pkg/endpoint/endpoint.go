@@ -92,20 +92,18 @@ func (r DeleteResponse) Failed() error {
 
 // GetRequest collects the request parameters for the Get method.
 type GetRequest struct {
-	Ad domain.Ad `json:"ad"`
 }
 
 // GetResponse collects the response parameters for the Get method.
 type GetResponse struct {
-	D0 domain.Ad `json:"d0"`
-	E1 error     `json:"e1"`
+	D0 []domain.Ad `json:"d0"`
+	E1 error       `json:"e1"`
 }
 
 // MakeGetEndpoint returns an endpoint that invokes Get on the service.
 func MakeGetEndpoint(s service.AdsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(GetRequest)
-		d0, e1 := s.Get(ctx, req.Ad)
+		d0, e1 := s.Get(ctx)
 		return GetResponse{
 			D0: d0,
 			E1: e1,
@@ -148,7 +146,7 @@ func (r GetAllByKeyWordResponse) Failed() error {
 
 // GetAllByUserRequest collects the request parameters for the GetAllByUser method.
 type GetAllByUserRequest struct {
-	Username string `json:"username"`
+	TargetAccountID string `json:"account_id"`
 }
 
 // GetAllByUserResponse collects the response parameters for the GetAllByUser method.
@@ -161,7 +159,7 @@ type GetAllByUserResponse struct {
 func MakeGetAllByUserEndpoint(s service.AdsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetAllByUserRequest)
-		d0, e1 := s.GetAllByUser(ctx, req.Username)
+		d0, e1 := s.GetAllByUser(ctx, req.TargetAccountID)
 		return GetAllByUserResponse{
 			D0: d0,
 			E1: e1,
@@ -212,8 +210,8 @@ func (e Endpoints) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
 }
 
 // Get implements Service. Primarily useful in a client.
-func (e Endpoints) Get(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
-	request := GetRequest{Ad: ad}
+func (e Endpoints) Get(ctx context.Context, ad domain.Ad) (d0 []domain.Ad, e1 error) {
+	request := GetRequest{}
 	response, err := e.GetEndpoint(ctx, request)
 	if err != nil {
 		return
@@ -232,8 +230,8 @@ func (e Endpoints) GetAllByKeyWord(ctx context.Context, keywords string) (d0 []d
 }
 
 // GetAllByUser implements Service. Primarily useful in a client.
-func (e Endpoints) GetAllByUser(ctx context.Context, username string) (d0 []domain.Ad, e1 error) {
-	request := GetAllByUserRequest{Username: username}
+func (e Endpoints) GetAllByUser(ctx context.Context, targetAccountID string) (d0 []domain.Ad, e1 error) {
+	request := GetAllByUserRequest{TargetAccountID: targetAccountID}
 	response, err := e.GetAllByUserEndpoint(ctx, request)
 	if err != nil {
 		return

@@ -2,9 +2,10 @@ package endpoint
 
 import (
 	"context"
-	endpoint "github.com/go-kit/kit/endpoint"
 	domain "golangmicroservices/transactions/pkg/domain"
 	service "golangmicroservices/transactions/pkg/service"
+
+	endpoint "github.com/go-kit/kit/endpoint"
 )
 
 // CreateRequest collects the request parameters for the Create method.
@@ -88,7 +89,9 @@ func (r RejectResponse) Failed() error {
 }
 
 // GetAllRequest collects the request parameters for the GetAll method.
-type GetAllRequest struct{}
+type GetAllRequest struct {
+	AccountID string
+}
 
 // GetAllResponse collects the response parameters for the GetAll method.
 type GetAllResponse struct {
@@ -99,7 +102,8 @@ type GetAllResponse struct {
 // MakeGetAllEndpoint returns an endpoint that invokes GetAll on the service.
 func MakeGetAllEndpoint(s service.TransactionsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		d0, e1 := s.GetAll(ctx)
+		req := request.(GetAllRequest)
+		d0, e1 := s.GetAll(ctx, req.AccountID)
 		return GetAllResponse{
 			D0: d0,
 			E1: e1,
@@ -150,8 +154,8 @@ func (e Endpoints) Reject(ctx context.Context, transaction domain.Transaction) (
 }
 
 // GetAll implements Service. Primarily useful in a client.
-func (e Endpoints) GetAll(ctx context.Context) (d0 []domain.Transaction, e1 error) {
-	request := GetAllRequest{}
+func (e Endpoints) GetAll(ctx context.Context, accountID string) (d0 []domain.Transaction, e1 error) {
+	request := GetAllRequest{AccountID: accountID}
 	response, err := e.GetAllEndpoint(ctx, request)
 	if err != nil {
 		return
