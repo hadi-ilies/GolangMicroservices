@@ -10,6 +10,9 @@ services:
     container_name: accounts
     ports:
       - "8081:8081"
+    environment:
+      ACCESS_SECRET: ${ACCESS_SECRET}
+      REFRESH_SECRET: ${REFRESH_SECRET}
     networks:
       - db-network
       - ads-network

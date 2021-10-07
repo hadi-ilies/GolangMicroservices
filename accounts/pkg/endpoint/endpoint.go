@@ -43,8 +43,8 @@ type SignInRequest struct {
 
 // SignInResponse collects the response parameters for the SignIn method.
 type SignInResponse struct {
-	D0 string `json:"d0"`
-	E1 error  `json:"e1"`
+	D0 map[string]string `json:"d0"`
+	E1 error             `json:"e1"`
 }
 
 // MakeSignInEndpoint returns an endpoint that invokes SignIn on the service.
@@ -216,7 +216,7 @@ func (e Endpoints) SignUp(ctx context.Context, account domain.Account) (d0 domai
 }
 
 // SignIn implements Service. Primarily useful in a client.
-func (e Endpoints) SignIn(ctx context.Context, account domain.Auth) (d0 string, e1 error) {
+func (e Endpoints) SignIn(ctx context.Context, account domain.Auth) (d0 map[string]string, e1 error) {
 	request := SignInRequest{Account: account}
 	response, err := e.SignInEndpoint(ctx, request)
 	if err != nil {
@@ -311,4 +311,38 @@ func (e Endpoints) Me(ctx context.Context) (d0 domain.Account, e1 error) {
 		return
 	}
 	return response.(MeResponse).D0, response.(MeResponse).E1
+}
+
+// LogoutRequest collects the request parameters for the Logout method.
+type LogoutRequest struct {
+	Token string `json:"token"`
+}
+
+// LogoutResponse collects the response parameters for the Logout method.
+type LogoutResponse struct {
+	E0 error `json:"e0"`
+}
+
+// MakeLogoutEndpoint returns an endpoint that invokes Logout on the service.
+func MakeLogoutEndpoint(s service.AccountsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(LogoutRequest)
+		e0 := s.Logout(ctx, req.Token)
+		return LogoutResponse{E0: e0}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r LogoutResponse) Failed() error {
+	return r.E0
+}
+
+// Logout implements Service. Primarily useful in a client.
+func (e Endpoints) Logout(ctx context.Context, token string) (e0 error) {
+	request := LogoutRequest{Token: token}
+	response, err := e.LogoutEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(LogoutResponse).E0
 }

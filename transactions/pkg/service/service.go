@@ -27,7 +27,6 @@ type TransactionsService interface {
 type basicTransactionsService struct{}
 
 func (b *basicTransactionsService) Create(ctx context.Context, transaction domain.Transaction) (d0 domain.Transaction, e1 error) {
-	// TODO implement the business logic of Create
 	transaction.Id = bson.NewObjectId()
 	transaction.CreatedAt = time.Now()
 	transaction.Accepted = false
@@ -42,7 +41,7 @@ func (b *basicTransactionsService) Create(ctx context.Context, transaction domai
 	return transaction, e1
 }
 func (b *basicTransactionsService) Accept(ctx context.Context, transaction domain.Transaction) (d0 domain.Transaction, e1 error) {
-	// TODO implement the business logic of Accept
+	//implement the business logic of Accept
 	transaction.Accepted = true
 	transaction.Rejected = false
 	session, err := db.GetMongoSession()
@@ -59,7 +58,7 @@ func (b *basicTransactionsService) Accept(ctx context.Context, transaction domai
 	return d0, e1
 }
 func (b *basicTransactionsService) Reject(ctx context.Context, transaction domain.Transaction) (e0 error) {
-	// TODO implement the business logic of Reject
+	//implement the business logic of Reject
 	transaction.Rejected = true
 	transaction.Accepted = false
 	session, err := db.GetMongoSession()
@@ -76,14 +75,14 @@ func (b *basicTransactionsService) Reject(ctx context.Context, transaction domai
 	return e0
 }
 func (b *basicTransactionsService) GetAll(ctx context.Context, accountID string) (d0 []domain.Transaction, e1 error) {
-	// TODO implement the business logic of GetAll
+	//implement the business logic of GetAll
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return d0, e1
 	}
 	defer session.Close()
 	c := session.DB("my_store").C("transactions")
-	//TODO should be passed in request
+	//should be passed in request
 	fmt.Println("DEBUGOS = ", accountID)
 	e1 = c.Find(bson.M{"account_id": bson.ObjectIdHex(accountID)}).All(&d0)
 	return d0, e1

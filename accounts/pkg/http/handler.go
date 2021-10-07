@@ -5,9 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golangmicroservices/accounts/pkg/db"
 	endpoint "golangmicroservices/accounts/pkg/endpoint"
 	http1 "net/http"
 	"os"
+
+	"gopkg.in/mgo.v2/bson"
+
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	http "github.com/go-kit/kit/transport/http"
@@ -15,36 +20,133 @@ import (
 	mux "github.com/gorilla/mux"
 )
 
-func IsAuthorized(r *http1.Request) (string, error) {
-	if r.Header["Authorization"] != nil {
-		token, err := jwt.Parse(r.Header["Authorization"][0], func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf(("Invalid Signing Method"))
-			}
-			aud := "billing.jwtgo.io"
-			checkAudience := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-			if !checkAudience {
-				return nil, fmt.Errorf(("invalid aud"))
-			}
-			// verify iss claim
-			iss := "jwtgo.io"
-			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-			if !checkIss {
-				return nil, fmt.Errorf(("invalid iss"))
-			}
-			return []byte(os.Getenv("SECRET_KEY")), nil
-		})
-		if err != nil {
-			return "", err
-		}
+// ---- IS AUTH ------
 
-		if token.Valid {
-			return r.Header["Authorization"][0], nil
-		}
-
-	}
-	return "", fmt.Errorf(("no Token detected"))
+type AccessDetails struct {
+	AccessUuid string `bson:"access_uuid"`
+	UserID     string `bson:"user_id"`
 }
+
+func ExtractToken(r *http1.Request) string {
+	bearToken := r.Header.Get("Authorization")
+	//normally Authorization the_token_xxx
+	strArr := strings.Split(bearToken, " ")
+	if len(strArr) == 2 {
+		return strArr[1]
+	}
+	return ""
+}
+
+func VerifyToken(r *http1.Request) (*jwt.Token, error) {
+	tokenString := ExtractToken(r)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		//Make sure that the token method conform to "SigningMethodHMAC"
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+func TokenValid(r *http1.Request) error {
+	token, err := VerifyToken(r)
+	if err != nil {
+		return err
+	}
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
+		fmt.Println("Error: TOKEN CLAIMS\n")
+		return err
+	}
+	return nil
+}
+
+func ExtractTokenMetadata(r *http1.Request) (*AccessDetails, error) {
+	token, err := VerifyToken(r)
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		accessUuid, ok := claims["access_uuid"].(string)
+		if !ok {
+			return nil, err
+		}
+		userID, exist := claims["user_id"]
+		if !exist {
+			return nil, fmt.Errorf(("claims error"))
+		}
+		return &AccessDetails{
+			AccessUuid: accessUuid,
+			UserID:     userID.(string),
+		}, nil
+	}
+	fmt.Println("Error spotted3\n")
+	return nil, err
+}
+
+//FetchAuth() accepts the AccessDetails from the ExtractTokenMetadata function, then looks it up in mongodb.
+//If the record is not found, it may mean the token has expired, hence an error is thrown.
+func FetchAuth(authD *AccessDetails) (string, error) {
+	session, err := db.GetMongoSession()
+
+	if err != nil {
+		fmt.Println("Error spotted1\n")
+		return "", err
+	}
+	defer session.Close()
+	c := session.DB("my_store").C("auths")
+	accessDetailField := AccessDetails{}
+	err = c.Find(bson.M{"access_uuid": authD.AccessUuid}).One(&accessDetailField)
+	if err != nil {
+		fmt.Println("Error spotted2\n")
+		return "", err
+	}
+	return accessDetailField.UserID, nil
+}
+
+//TODO DELETE
+func IsAuthorized(r *http1.Request) (string, error) {
+	return "", nil
+}
+
+// func IsAuthorized(r *http1.Request) (string, error) {
+// 	//extract token
+// 	if r.Header["Authorization"] != nil {
+// 		token, err := jwt.Parse(r.Header["Authorization"][0], func(token *jwt.Token) (interface{}, error) {
+// 			//Make sure that the token method conform to "SigningMethodHMAC"
+// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+// 				return nil, fmt.Errorf(("Invalid Signing Method"))
+// 			}
+// 			aud := "billing.jwtgo.io"
+// 			checkAudience := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
+// 			if !checkAudience {
+// 				return nil, fmt.Errorf(("invalid aud"))
+// 			}
+// 			// verify iss claim
+// 			iss := "jwtgo.io"
+// 			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
+// 			if !checkIss {
+// 				return nil, fmt.Errorf(("invalid iss"))
+// 			}
+// 			return []byte(os.Getenv("SECRET_KEY")), nil
+// 		})
+// 		if err != nil {
+// 			return "", err
+// 		}
+
+// 		if token.Valid {
+// 			return r.Header["Authorization"][0], nil
+// 		}
+
+// 	}
+// 	return "", fmt.Errorf(("no Token detected"))
+// }
+
+// ----END IS AUTH----
 
 // makeSignUpHandler creates the handler logic
 func makeSignUpHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
@@ -212,13 +314,28 @@ func makeGetUserInfoHandler(m *mux.Router, endpoints endpoint.Endpoints, options
 // decodeGetUserInfoRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetUserInfoRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
-
+	var userID string
+	tokenAuth, err := ExtractTokenMetadata(r)
 	if err != nil {
+		fmt.Println("tokenAuth ERROR")
 		return nil, err
 	}
+	userID, err = FetchAuth(tokenAuth)
+	if err != nil {
+		fmt.Println("UNAUTHORIZED")
+		return nil, err
+	}
+	fmt.Println("USERID = ", userID)
+	//you can proceed
+
+	// _, err := IsAuthorized(r)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
 	req := endpoint.GetUserInfoRequest{}
 	err = json.NewDecoder(r.Body).Decode(&req)
+	fmt.Println("Lolilol")
 	return req, err
 }
 
@@ -305,6 +422,39 @@ func decodeMeRequest(_ context.Context, r *http1.Request) (interface{}, error) {
 // encodeMeResponse is a transport/http.EncodeResponseFunc that encodes
 // the response as JSON to the response writer
 func encodeMeResponse(ctx context.Context, w http1.ResponseWriter, response interface{}) (err error) {
+	if f, ok := response.(endpoint.Failure); ok && f.Failed() != nil {
+		ErrorEncoder(ctx, f.Failed(), w)
+		return nil
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	err = json.NewEncoder(w).Encode(response)
+	return
+}
+
+// makeLogoutHandler creates the handler logic
+func makeLogoutHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
+	m.Methods("POST").Path("/logout").Handler(handlers.CORS(handlers.AllowedMethods([]string{"POST"}), handlers.AllowedOrigins([]string{"*"}))(http.NewServer(endpoints.LogoutEndpoint, decodeLogoutRequest, encodeLogoutResponse, options...)))
+}
+
+// decodeLogoutRequest is a transport/http.DecodeRequestFunc that decodes a
+// JSON-encoded request from the HTTP request body.
+func decodeLogoutRequest(_ context.Context, r *http1.Request) (interface{}, error) {
+	tokenAuth, err := ExtractTokenMetadata(r)
+	if err != nil {
+		fmt.Println("tokenAuth ERROR")
+		return nil, err
+	}
+	req := endpoint.LogoutRequest{}
+	fmt.Println("tokenAuth.AccessUuid = ", tokenAuth.AccessUuid)
+	//todo change req.token name to access_uuid
+	req.Token = tokenAuth.AccessUuid
+	err = json.NewDecoder(r.Body).Decode(&req)
+	return req, err
+}
+
+// encodeLogoutResponse is a transport/http.EncodeResponseFunc that encodes
+// the response as JSON to the response writer
+func encodeLogoutResponse(ctx context.Context, w http1.ResponseWriter, response interface{}) (err error) {
 	if f, ok := response.(endpoint.Failure); ok && f.Failed() != nil {
 		ErrorEncoder(ctx, f.Failed(), w)
 		return nil

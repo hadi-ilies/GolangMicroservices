@@ -5,4 +5,10 @@ package domain
 type Auth struct {
 	Email    string `json:"email"  bson:"email"`
 	Password string `json:"password" bson:"password"`
+	AccessToken  string
+  RefreshToken string
+  AccessUuid   string
+  RefreshUuid  string
+  AtExpires    int64
+  RtExpires    int64
 }

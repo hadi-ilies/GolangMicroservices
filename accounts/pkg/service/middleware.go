@@ -30,7 +30,7 @@ func (l loggingMiddleware) SignUp(ctx context.Context, account domain.Account) (
 	}()
 	return l.next.SignUp(ctx, account)
 }
-func (l loggingMiddleware) SignIn(ctx context.Context, account domain.Auth) (d0 string, e1 error) {
+func (l loggingMiddleware) SignIn(ctx context.Context, account domain.Auth) (d0 map[string]string, e1 error) {
 	defer func() {
 		l.logger.Log("method", "SignIn", "account", account, "d0", d0, "e1", e1)
 	}()
@@ -72,4 +72,11 @@ func (l loggingMiddleware) Me(ctx context.Context, token string) (d0 domain.Acco
 		l.logger.Log("method", "Me", "d0", d0, "e1", e1)
 	}()
 	return l.next.Me(ctx, token)
+}
+
+func (l loggingMiddleware) Logout(ctx context.Context, token string) (e0 error) {
+	defer func() {
+		l.logger.Log("method", "Logout", "token", token, "e0", e0)
+	}()
+	return l.next.Logout(ctx, token)
 }

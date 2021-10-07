@@ -12,6 +12,7 @@ import (
 type Endpoints struct {
 	SignUpEndpoint      endpoint.Endpoint
 	SignInEndpoint      endpoint.Endpoint
+	LogoutEndpoint      endpoint.Endpoint
 	UpdateEndpoint      endpoint.Endpoint
 	DeleteEndpoint      endpoint.Endpoint
 	MeEndpoint          endpoint.Endpoint
@@ -28,6 +29,7 @@ func New(s service.AccountsService, mdw map[string][]endpoint.Middleware) Endpoi
 		DeleteEndpoint:      MakeDeleteEndpoint(s),
 		GetEndpoint:         MakeGetEndpoint(s),
 		GetUserInfoEndpoint: MakeGetUserInfoEndpoint(s),
+		LogoutEndpoint:      MakeLogoutEndpoint(s),
 		MeEndpoint:          MakeMeEndpoint(s),
 		SignInEndpoint:      MakeSignInEndpoint(s),
 		SignUpEndpoint:      MakeSignUpEndpoint(s),
@@ -38,6 +40,9 @@ func New(s service.AccountsService, mdw map[string][]endpoint.Middleware) Endpoi
 	}
 	for _, m := range mdw["SignIn"] {
 		eps.SignInEndpoint = m(eps.SignInEndpoint)
+	}
+	for _, m := range mdw["Logout"] {
+		eps.LogoutEndpoint = m(eps.LogoutEndpoint)
 	}
 	for _, m := range mdw["Update"] {
 		eps.UpdateEndpoint = m(eps.UpdateEndpoint)

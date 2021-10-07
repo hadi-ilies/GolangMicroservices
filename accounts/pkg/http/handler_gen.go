@@ -14,6 +14,7 @@ func NewHTTPHandler(endpoints endpoint.Endpoints, options map[string][]http.Serv
 	m := mux.NewRouter()
 	makeSignUpHandler(m, endpoints, options["SignUp"])
 	makeSignInHandler(m, endpoints, options["SignIn"])
+	makeLogoutHandler(m, endpoints, options["Logout"])
 	makeUpdateHandler(m, endpoints, options["Update"])
 	makeDeleteHandler(m, endpoints, options["Delete"])
 	makeMeHandler(m, endpoints, options["Me"])
