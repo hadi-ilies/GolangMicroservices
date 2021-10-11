@@ -42,11 +42,11 @@ func (l loggingMiddleware) Update(ctx context.Context, account domain.Account) (
 	}()
 	return l.next.Update(ctx, account)
 }
-func (l loggingMiddleware) Delete(ctx context.Context, token string) (e0 error) {
+func (l loggingMiddleware) Delete(ctx context.Context, userID string) (e0 error) {
 	defer func() {
 		l.logger.Log("method", "Delete", "e0", e0)
 	}()
-	return l.next.Delete(ctx, token)
+	return l.next.Delete(ctx, userID)
 }
 func (l loggingMiddleware) Get(ctx context.Context) (d0 []domain.Account, e1 error) {
 	defer func() {
@@ -60,23 +60,23 @@ func (l loggingMiddleware) GetUserInfo(ctx context.Context, username string) (d0
 	}()
 	return l.next.GetUserInfo(ctx, username)
 }
-func (l loggingMiddleware) AddFunds(ctx context.Context, token string, funds uint64) (d0 domain.Account, e1 error) {
+func (l loggingMiddleware) AddFunds(ctx context.Context, userID string, funds uint64) (d0 domain.Account, e1 error) {
 	defer func() {
 		l.logger.Log("method", "AddFunds", "funds", funds, "d0", d0, "e1", e1)
 	}()
-	return l.next.AddFunds(ctx, token, funds)
+	return l.next.AddFunds(ctx, userID, funds)
 }
 
-func (l loggingMiddleware) Me(ctx context.Context, token string) (d0 domain.Account, e1 error) {
+func (l loggingMiddleware) Me(ctx context.Context, userID string) (d0 domain.Account, e1 error) {
 	defer func() {
 		l.logger.Log("method", "Me", "d0", d0, "e1", e1)
 	}()
-	return l.next.Me(ctx, token)
+	return l.next.Me(ctx, userID)
 }
 
-func (l loggingMiddleware) Logout(ctx context.Context, token string) (e0 error) {
+func (l loggingMiddleware) Logout(ctx context.Context, accessUUID string) (e0 error) {
 	defer func() {
-		l.logger.Log("method", "Logout", "token", token, "e0", e0)
+		l.logger.Log("method", "Logout", "accessUUID", accessUUID, "e0", e0)
 	}()
-	return l.next.Logout(ctx, token)
+	return l.next.Logout(ctx, accessUUID)
 }

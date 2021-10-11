@@ -1,5 +1,24 @@
 version: "3"
 services:
+  auths:
+    build:
+      context: .
+      dockerfile: auths/Dockerfile
+    restart: always
+    volumes:
+      - '.:/go/src/golangmicroservices'
+    container_name: auths
+    ports:
+      - "8084:8084"
+    environment:
+      ACCESS_SECRET: ${ACCESS_SECRET}
+      REFRESH_SECRET: ${REFRESH_SECRET}
+    networks:
+      - account-network
+      - db-network
+      - ads-network
+      - transactions-network
+
   accounts:
     build:
       context: .
@@ -14,9 +33,13 @@ services:
       ACCESS_SECRET: ${ACCESS_SECRET}
       REFRESH_SECRET: ${REFRESH_SECRET}
     networks:
+      - account-network
       - db-network
       - ads-network
       - transactions-network
+    links:
+      ##allows us to reach the auths microservice from account microservice
+      - "auths"
   ads:
     build:
       context: .
@@ -49,6 +72,7 @@ services:
     links:
       ##allows us to reach the account microservice from ads microservice
       - "accounts"
+
   mongodb:
     image: mongo:4.2
     container_name: mongodb
@@ -61,6 +85,8 @@ services:
       - db-network
 
 networks:
+  account-network:
   db-network:
   ads-network:
   transactions-network:
+  auth-network:

@@ -1,150 +1,122 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golangmicroservices/accounts/pkg/db"
 	endpoint "golangmicroservices/accounts/pkg/endpoint"
+	authEndpoint "golangmicroservices/auths/pkg/endpoint"
+	"io/ioutil"
 	http1 "net/http"
-	"os"
+	"net/url"
+	"time"
 
-	"gopkg.in/mgo.v2/bson"
-
-	"strings"
-
-	"github.com/dgrijalva/jwt-go"
 	http "github.com/go-kit/kit/transport/http"
 	handlers "github.com/gorilla/handlers"
 	mux "github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // ---- IS AUTH ------
 
-type AccessDetails struct {
-	AccessUuid string `bson:"access_uuid"`
-	UserID     string `bson:"user_id"`
-}
+func ExtractTokenMetadata(r http1.Request) (*authEndpoint.ExtractTokenMetadataResponse, error) {
+	URL, _ := url.Parse("http://auths:8084/extract-token-metadata")
+	r.URL.Scheme = URL.Scheme
+	r.URL.Host = URL.Host
+	r.URL.Path = "http://auths:8084/extract-token-metadata"
+	r.RequestURI = ""
+	r.Method = http1.MethodPost
 
-func ExtractToken(r *http1.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	//normally Authorization the_token_xxx
-	strArr := strings.Split(bearToken, " ")
-	if len(strArr) == 2 {
-		return strArr[1]
+	spaceClient := http1.Client{
+		Timeout: time.Second * 20, // Timeout after 2 seconds
 	}
-	return ""
-}
+	// Step 2: adjust Header
+	r.Header.Set("X-Forwarded-For", r.RemoteAddr)
+	res, getErr := spaceClient.Do(&r)
+	if getErr != nil {
+		fmt.Println("CALAMAR2")
+		return nil, getErr
+	}
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		fmt.Println("CALAMAR3")
+		return nil, readErr
+	}
+	myAccountResponse := authEndpoint.ExtractTokenMetadataResponse{}
+	jsonErr := json.Unmarshal(body, &myAccountResponse)
+	if jsonErr != nil {
+		fmt.Println("CALAMAR4")
+		return nil, jsonErr
+	}
 
-func VerifyToken(r *http1.Request) (*jwt.Token, error) {
-	tokenString := ExtractToken(r)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		//Make sure that the token method conform to "SigningMethodHMAC"
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("ACCESS_SECRET")), nil
-	})
-	if err != nil {
-		return nil, err
+	fmt.Println("myAccountResponse.Details.UserID = ", myAccountResponse.Details.UserID)
+	if myAccountResponse.Details.UserID == "" {
+		return nil, fmt.Errorf("Error: auth Request failed")
 	}
-	return token, nil
-}
-
-func TokenValid(r *http1.Request) error {
-	token, err := VerifyToken(r)
-	if err != nil {
-		return err
-	}
-	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		fmt.Println("Error: TOKEN CLAIMS\n")
-		return err
-	}
-	return nil
-}
-
-func ExtractTokenMetadata(r *http1.Request) (*AccessDetails, error) {
-	token, err := VerifyToken(r)
-	if err != nil {
-		return nil, err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		accessUuid, ok := claims["access_uuid"].(string)
-		if !ok {
-			return nil, err
-		}
-		userID, exist := claims["user_id"]
-		if !exist {
-			return nil, fmt.Errorf(("claims error"))
-		}
-		return &AccessDetails{
-			AccessUuid: accessUuid,
-			UserID:     userID.(string),
-		}, nil
-	}
-	fmt.Println("Error spotted3\n")
-	return nil, err
+	return &myAccountResponse, nil
 }
 
 //FetchAuth() accepts the AccessDetails from the ExtractTokenMetadata function, then looks it up in mongodb.
 //If the record is not found, it may mean the token has expired, hence an error is thrown.
-func FetchAuth(authD *AccessDetails) (string, error) {
-	session, err := db.GetMongoSession()
+func FetchAuth(authD *authEndpoint.FetchAuthRequest) (string, error) {
+	url := "http://auths:8084/fetch-auth"
+	spaceClient := http1.Client{
+		Timeout: time.Second * 20, // Timeout after 2 seconds
+	}
+	// jsonData := map[string]interface{}{"auth_d": authD.AuthD}
+	s, _ := json.Marshal(*authD)
+	req, err := http1.NewRequest(http1.MethodPost, url, bytes.NewReader(s))
+	if err != nil {
+		fmt.Println("CALAMAR1")
+		return "", err
+	}
+	req.Header.Set("Access-Control-Allow-Origin", "*")
 
-	if err != nil {
-		fmt.Println("Error spotted1\n")
-		return "", err
+	res, getErr := spaceClient.Do(req)
+	if getErr != nil {
+		fmt.Println("CALAMAR2")
+		return "", getErr
 	}
-	defer session.Close()
-	c := session.DB("my_store").C("auths")
-	accessDetailField := AccessDetails{}
-	err = c.Find(bson.M{"access_uuid": authD.AccessUuid}).One(&accessDetailField)
-	if err != nil {
-		fmt.Println("Error spotted2\n")
-		return "", err
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		fmt.Println("CALAMAR3")
+		return "", readErr
 	}
-	return accessDetailField.UserID, nil
+	myAccountResponse := authEndpoint.FetchAuthResponse{}
+	jsonErr := json.Unmarshal(body, &myAccountResponse)
+	if jsonErr != nil {
+		fmt.Println("CALAMAR4")
+		return "", jsonErr
+	}
+
+	fmt.Println("myAccountResponse.UserID = ", myAccountResponse.UserID)
+	return myAccountResponse.UserID, nil
 }
 
 //TODO DELETE
-func IsAuthorized(r *http1.Request) (string, error) {
-	return "", nil
+func checkToken(r *http1.Request) (string, error) {
+	var userID string
+	//we MUST copy the body because it can be read Only once for each http.request
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+
+	r.Body = rdr1
+	tokenAuth, err := ExtractTokenMetadata(*r)
+	if err != nil {
+		fmt.Println("UNAUTHORIZED: Token expired or not detected")
+		return "", err
+	}
+	authD := authEndpoint.FetchAuthRequest{AuthD: tokenAuth.Details}
+	userID, err = FetchAuth(&authD)
+	if err != nil || userID == "" {
+		fmt.Println("UNAUTHORIZED: Token deleted")
+		return "", fmt.Errorf("Error: invalid Token")
+	}
+	fmt.Println("USERID = ", userID)
+	return userID, err
 }
-
-// func IsAuthorized(r *http1.Request) (string, error) {
-// 	//extract token
-// 	if r.Header["Authorization"] != nil {
-// 		token, err := jwt.Parse(r.Header["Authorization"][0], func(token *jwt.Token) (interface{}, error) {
-// 			//Make sure that the token method conform to "SigningMethodHMAC"
-// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-// 				return nil, fmt.Errorf(("Invalid Signing Method"))
-// 			}
-// 			aud := "billing.jwtgo.io"
-// 			checkAudience := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-// 			if !checkAudience {
-// 				return nil, fmt.Errorf(("invalid aud"))
-// 			}
-// 			// verify iss claim
-// 			iss := "jwtgo.io"
-// 			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-// 			if !checkIss {
-// 				return nil, fmt.Errorf(("invalid iss"))
-// 			}
-// 			return []byte(os.Getenv("SECRET_KEY")), nil
-// 		})
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		if token.Valid {
-// 			return r.Header["Authorization"][0], nil
-// 		}
-
-// 	}
-// 	return "", fmt.Errorf(("no Token detected"))
-// }
 
 // ----END IS AUTH----
 
@@ -216,12 +188,18 @@ func makeUpdateHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeUpdateRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeUpdateRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.UpdateRequest{}, err
 	}
+	r.Body = rdr2
 	req := endpoint.UpdateRequest{}
+	req.Account.Id = bson.ObjectIdHex(userID)
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -251,12 +229,18 @@ func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeDeleteRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeDeleteRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	buf := []byte(`{}`)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.GetUserInfoRequest{}, err
 	}
-	req := endpoint.DeleteRequest{Token: token}
+	r.Body = rdr2
+	//todo(HADI) change token by userID
+	req := endpoint.DeleteRequest{UserID: userID}
 	return req, err
 }
 
@@ -280,10 +264,13 @@ func makeGetHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.
 // decodeGetRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	buf := []byte(`{}`)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	_, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.GetUserInfoRequest{}, err
 	}
 	req := endpoint.GetRequest{}
 	return req, nil
@@ -314,28 +301,21 @@ func makeGetUserInfoHandler(m *mux.Router, endpoints endpoint.Endpoints, options
 // decodeGetUserInfoRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetUserInfoRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	var userID string
-	tokenAuth, err := ExtractTokenMetadata(r)
-	if err != nil {
-		fmt.Println("tokenAuth ERROR")
-		return nil, err
-	}
-	userID, err = FetchAuth(tokenAuth)
-	if err != nil {
-		fmt.Println("UNAUTHORIZED")
-		return nil, err
-	}
-	fmt.Println("USERID = ", userID)
-	//you can proceed
+	//we MUST copy the body because it can be read Only once for each http.request
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
-	// _, err := IsAuthorized(r)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
+	r.Body = rdr1
+	_, err := checkToken(r)
+	if err != nil {
+		return endpoint.GetUserInfoRequest{}, err
+	}
+	//use the second body
+	r.Body = rdr2
 	req := endpoint.GetUserInfoRequest{}
 	err = json.NewDecoder(r.Body).Decode(&req)
-	fmt.Println("Lolilol")
+	fmt.Println("username = ", req.Username)
 	return req, err
 }
 
@@ -359,12 +339,17 @@ func makeAddFundsHandler(m *mux.Router, endpoints endpoint.Endpoints, options []
 // decodeAddFundsRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeAddFundsRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.GetUserInfoRequest{}, err
 	}
-	req := endpoint.AddFundsRequest{Token: token}
+	r.Body = rdr2
+	req := endpoint.AddFundsRequest{UserID: userID}
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -410,12 +395,19 @@ func makeMeHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.S
 // decodeMeRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeMeRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	//get has an empty request so let fill it in order to avoid EOF
+	buf := []byte(`{}`)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	// rCopy, err := http1.NewRequest(http1.MethodPost, "", r.Body)
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.MeRequest{}, err
 	}
-	req := endpoint.MeRequest{Token: token}
+	r.Body = rdr2
+	req := endpoint.MeRequest{UserID: userID}
 	return req, err
 }
 
@@ -439,15 +431,22 @@ func makeLogoutHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeLogoutRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeLogoutRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	tokenAuth, err := ExtractTokenMetadata(r)
+	//we MUST copy the body because it can be read Only once for each http.request
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
+
+	r.Body = rdr1
+	tokenAuth, err := ExtractTokenMetadata(*r)
 	if err != nil {
 		fmt.Println("tokenAuth ERROR")
 		return nil, err
 	}
 	req := endpoint.LogoutRequest{}
-	fmt.Println("tokenAuth.AccessUuid = ", tokenAuth.AccessUuid)
+	fmt.Println("tokenAuth.AccessUuid = ", tokenAuth.Details.AccessUuid)
 	//todo change req.token name to access_uuid
-	req.Token = tokenAuth.AccessUuid
+	req.AccessUuid = tokenAuth.Details.AccessUuid
+	r.Body = rdr2
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }

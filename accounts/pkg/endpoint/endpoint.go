@@ -94,7 +94,7 @@ func (r UpdateResponse) Failed() error {
 
 // DeleteRequest collects the request parameters for the Delete method.
 type DeleteRequest struct {
-	Token string `json:"-"`
+	UserID string `json:"-"`
 }
 
 // DeleteResponse collects the response parameters for the Delete method.
@@ -106,7 +106,7 @@ type DeleteResponse struct {
 func MakeDeleteEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeleteRequest)
-		e0 := s.Delete(ctx, req.Token)
+		e0 := s.Delete(ctx, req.UserID)
 		return DeleteResponse{E0: e0}, nil
 	}
 }
@@ -171,8 +171,8 @@ func (r GetUserInfoResponse) Failed() error {
 
 // AddFundsRequest collects the request parameters for the AddFunds method.
 type AddFundsRequest struct {
-	Token string `json:"-"`
-	Funds uint64 `json:"funds"`
+	UserID string `json:"-"`
+	Funds  uint64 `json:"funds"`
 }
 
 // AddFundsResponse collects the response parameters for the AddFunds method.
@@ -185,7 +185,7 @@ type AddFundsResponse struct {
 func MakeAddFundsEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(AddFundsRequest)
-		d0, e1 := s.AddFunds(ctx, req.Token, req.Funds)
+		d0, e1 := s.AddFunds(ctx, req.UserID, req.Funds)
 		return AddFundsResponse{
 			D0: d0,
 			E1: e1,
@@ -277,7 +277,7 @@ func (e Endpoints) AddFunds(ctx context.Context, funds uint64) (d0 domain.Accoun
 
 // MeRequest collects the request parameters for the Me method.
 type MeRequest struct {
-	Token string `json:"-"`
+	UserID string `json:"-"`
 }
 
 // MeResponse collects the response parameters for the Me method.
@@ -290,7 +290,7 @@ type MeResponse struct {
 func MakeMeEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(MeRequest)
-		d0, e1 := s.Me(ctx, req.Token)
+		d0, e1 := s.Me(ctx, req.UserID)
 		return MeResponse{
 			D0: d0,
 			E1: e1,
@@ -315,7 +315,7 @@ func (e Endpoints) Me(ctx context.Context) (d0 domain.Account, e1 error) {
 
 // LogoutRequest collects the request parameters for the Logout method.
 type LogoutRequest struct {
-	Token string `json:"token"`
+	AccessUuid string `json:"-"`
 }
 
 // LogoutResponse collects the response parameters for the Logout method.
@@ -327,7 +327,7 @@ type LogoutResponse struct {
 func MakeLogoutEndpoint(s service.AccountsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(LogoutRequest)
-		e0 := s.Logout(ctx, req.Token)
+		e0 := s.Logout(ctx, req.AccessUuid)
 		return LogoutResponse{E0: e0}, nil
 	}
 }
@@ -338,8 +338,8 @@ func (r LogoutResponse) Failed() error {
 }
 
 // Logout implements Service. Primarily useful in a client.
-func (e Endpoints) Logout(ctx context.Context, token string) (e0 error) {
-	request := LogoutRequest{Token: token}
+func (e Endpoints) Logout(ctx context.Context, AccessUuid string) (e0 error) {
+	request := LogoutRequest{AccessUuid: AccessUuid}
 	response, err := e.LogoutEndpoint(ctx, request)
 	if err != nil {
 		return
