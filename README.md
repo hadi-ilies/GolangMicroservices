@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to golangmicroservices 👋</h1>
-> The goal of the project is to create the back end of a digital marketplace (account, ads, search, transactions, ...).
-The project will be written in Golang and must use microservices.
+
+> The goal of this project is to create the back end of a digital marketplace (account, ads, search, transactions...) With a microservices architecture and Domain-driven design. all services are writte in Golang, dockerized and they communicate via HTTP protocol
 
 ## Installation
 ### install Gokit-CLI (needed if you want to create a service by your own)
