@@ -65,7 +65,6 @@ func FetchAuth(authD *authEndpoint.FetchAuthRequest) (string, error) {
 	spaceClient := http1.Client{
 		Timeout: time.Second * 20, // Timeout after 2 seconds
 	}
-	// jsonData := map[string]interface{}{"auth_d": authD.AuthD}
 	s, _ := json.Marshal(*authD)
 	req, err := http1.NewRequest(http1.MethodPost, url, bytes.NewReader(s))
 	if err != nil {
@@ -95,7 +94,6 @@ func FetchAuth(authD *authEndpoint.FetchAuthRequest) (string, error) {
 	return myAccountResponse.UserID, nil
 }
 
-//TODO DELETE
 func checkToken(r *http1.Request) (string, error) {
 	var userID string
 	//we MUST copy the body because it can be read Only once for each http.request

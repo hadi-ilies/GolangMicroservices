@@ -54,8 +54,8 @@ services:
       - db-network
       - ads-network
     links:
-      ##allows us to reach the account microservice from ads microservice
-      - "accounts"
+      ##allows us to reach the auth microservice from ads microservice
+      - "auths"
   transactions:
     build:
       context: .
@@ -70,8 +70,8 @@ services:
       - db-network
       - transactions-network
     links:
-      ##allows us to reach the account microservice from ads microservice
-      - "accounts"
+      ##allows us to reach the auth microservice from transactions microservice
+      - "auths"
 
   mongodb:
     image: mongo:4.2

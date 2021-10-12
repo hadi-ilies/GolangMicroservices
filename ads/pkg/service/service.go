@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"golangmicroservices/ads/pkg/db"
 	"golangmicroservices/ads/pkg/domain"
 	"time"
@@ -31,7 +30,7 @@ type AdsService interface {
 type basicAdsService struct{}
 
 func (b *basicAdsService) Create(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
-	// TODO implement the business logic of Create
+	// the business logic of Create
 	ad.Id = bson.NewObjectId()
 	ad.CreatedAt = time.Now()
 	session, err := db.GetMongoSession()
@@ -44,7 +43,7 @@ func (b *basicAdsService) Create(ctx context.Context, ad domain.Ad) (d0 domain.A
 	return ad, e1
 }
 func (b *basicAdsService) Update(ctx context.Context, ad domain.Ad) (d0 domain.Ad, e1 error) {
-	// TODO implement the business logic of Update
+	// the business logic of Update
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return d0, err
@@ -59,7 +58,7 @@ func (b *basicAdsService) Update(ctx context.Context, ad domain.Ad) (d0 domain.A
 	return d0, e1
 }
 func (b *basicAdsService) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
-	// TODO implement the business logic of Delete
+	// the business logic of Delete
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return err
@@ -71,7 +70,7 @@ func (b *basicAdsService) Delete(ctx context.Context, ad domain.Ad) (e1 error) {
 	return e1
 }
 func (b *basicAdsService) Get(ctx context.Context) (d0 []domain.Ad, e1 error) {
-	// TODO implement the business logic of Get
+	// the business logic of Get
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return d0, e1
@@ -83,19 +82,17 @@ func (b *basicAdsService) Get(ctx context.Context) (d0 []domain.Ad, e1 error) {
 }
 
 func (b *basicAdsService) GetAllByKeyWord(ctx context.Context, keywords string) (d0 []domain.Ad, e1 error) {
-	// TODO implement the business logic of GetAllByKeyWord
+	// TODO the business logic of GetAllByKeyWord
 	return d0, e1
 }
 func (b *basicAdsService) GetAllByUser(ctx context.Context, targetAccountID string) (d0 []domain.Ad, e1 error) {
-	// TODO implement the business logic of GetAllByUser
+	// the business logic of GetAllByUser
 	session, err := db.GetMongoSession()
 	if err != nil {
 		return d0, e1
 	}
 	defer session.Close()
 	c := session.DB("my_store").C("ads")
-	//TODO should be passed in request
-	fmt.Println("DEBUGOS = ", targetAccountID)
 	e1 = c.Find(bson.M{"account_id": bson.ObjectIdHex(targetAccountID)}).All(&d0)
 
 	return d0, e1

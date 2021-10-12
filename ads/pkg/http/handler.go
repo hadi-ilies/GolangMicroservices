@@ -1,39 +1,39 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	AccountDomain "golangmicroservices/accounts/pkg/domain"
 	endpoint "golangmicroservices/ads/pkg/endpoint"
 	"io/ioutil"
 	http1 "net/http"
-	"os"
+	"net/url"
 	"time"
 
-	accountEndpoint "golangmicroservices/accounts/pkg/endpoint"
+	authEndpoint "golangmicroservices/auths/pkg/endpoint"
 
-	"github.com/dgrijalva/jwt-go"
 	http "github.com/go-kit/kit/transport/http"
 	handlers "github.com/gorilla/handlers"
 	mux "github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
 )
 
-func getAccount(token string) (*AccountDomain.Account, error) {
-	fmt.Println("am I here ?")
-	url := "http://accounts:8081/me"
+func ExtractTokenMetadata(r http1.Request) (*authEndpoint.ExtractTokenMetadataResponse, error) {
+	URL, _ := url.Parse("http://auths:8084/extract-token-metadata")
+	r.URL.Scheme = URL.Scheme
+	r.URL.Host = URL.Host
+	r.URL.Path = "http://auths:8084/extract-token-metadata"
+	r.RequestURI = ""
+	r.Method = http1.MethodPost
+
 	spaceClient := http1.Client{
 		Timeout: time.Second * 20, // Timeout after 2 seconds
 	}
-	req, err := http1.NewRequest(http1.MethodGet, url, nil)
-	if err != nil {
-		fmt.Println("CALAMAR1")
-		return nil, err
-	}
-	req.Header.Set("Access-Control-Allow-Origin", "*")
-	req.Header.Set("Authorization", token)
-	res, getErr := spaceClient.Do(req)
+	// Step 2: adjust Header
+	r.Header.Set("X-Forwarded-For", r.RemoteAddr)
+	res, getErr := spaceClient.Do(&r)
 	if getErr != nil {
 		fmt.Println("CALAMAR2")
 		return nil, getErr
@@ -43,48 +43,76 @@ func getAccount(token string) (*AccountDomain.Account, error) {
 		fmt.Println("CALAMAR3")
 		return nil, readErr
 	}
-	fmt.Println("BODY = ", string(body))
-	var myAccountResponse accountEndpoint.MeResponse = accountEndpoint.MeResponse{}
+	myAccountResponse := authEndpoint.ExtractTokenMetadataResponse{}
 	jsonErr := json.Unmarshal(body, &myAccountResponse)
 	if jsonErr != nil {
 		fmt.Println("CALAMAR4")
 		return nil, jsonErr
 	}
 
-	fmt.Println("USERNAME = ", myAccountResponse.D0.Username)
-	return &myAccountResponse.D0, nil
+	fmt.Println("myAccountResponse.Details.UserID = ", myAccountResponse.Details.UserID)
+	if myAccountResponse.Details.UserID == "" {
+		return nil, fmt.Errorf("Error: auth Request failed")
+	}
+	return &myAccountResponse, nil
 }
 
-//TODO move this inside auth microservice
-func IsAuthorized(r *http1.Request) (string, error) {
-	if r.Header["Authorization"] != nil {
-		token, err := jwt.Parse(r.Header["Authorization"][0], func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf(("Invalid Signing Method"))
-			}
-			aud := "billing.jwtgo.io"
-			checkAudience := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-			if !checkAudience {
-				return nil, fmt.Errorf(("invalid aud"))
-			}
-			// verify iss claim
-			iss := "jwtgo.io"
-			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-			if !checkIss {
-				return nil, fmt.Errorf(("invalid iss"))
-			}
-			return []byte(os.Getenv("SECRET_KEY")), nil
-		})
-		if err != nil {
-			return "", err
-		}
-
-		if token.Valid {
-			return r.Header["Authorization"][0], nil
-		}
-
+//FetchAuth() accepts the AccessDetails from the ExtractTokenMetadata function, then looks it up in mongodb.
+//If the record is not found, it may mean the token has expired, hence an error is thrown.
+func FetchAuth(authD *authEndpoint.FetchAuthRequest) (string, error) {
+	url := "http://auths:8084/fetch-auth"
+	spaceClient := http1.Client{
+		Timeout: time.Second * 20, // Timeout after 2 seconds
 	}
-	return "", fmt.Errorf(("no Token detected"))
+	s, _ := json.Marshal(*authD)
+	req, err := http1.NewRequest(http1.MethodPost, url, bytes.NewReader(s))
+	if err != nil {
+		fmt.Println("CALAMAR1")
+		return "", err
+	}
+	req.Header.Set("Access-Control-Allow-Origin", "*")
+
+	res, getErr := spaceClient.Do(req)
+	if getErr != nil {
+		fmt.Println("CALAMAR2")
+		return "", getErr
+	}
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		fmt.Println("CALAMAR3")
+		return "", readErr
+	}
+	myAccountResponse := authEndpoint.FetchAuthResponse{}
+	jsonErr := json.Unmarshal(body, &myAccountResponse)
+	if jsonErr != nil {
+		fmt.Println("CALAMAR4")
+		return "", jsonErr
+	}
+
+	fmt.Println("myAccountResponse.UserID = ", myAccountResponse.UserID)
+	return myAccountResponse.UserID, nil
+}
+
+func checkToken(r *http1.Request) (string, error) {
+	var userID string
+	//we MUST copy the body because it can be read Only once for each http.request
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+
+	r.Body = rdr1
+	tokenAuth, err := ExtractTokenMetadata(*r)
+	if err != nil {
+		fmt.Println("UNAUTHORIZED: Token expired or not detected")
+		return "", err
+	}
+	authD := authEndpoint.FetchAuthRequest{AuthD: tokenAuth.Details}
+	userID, err = FetchAuth(&authD)
+	if err != nil || userID == "" {
+		fmt.Println("UNAUTHORIZED: Token deleted")
+		return "", fmt.Errorf("Error: invalid Token")
+	}
+	fmt.Println("USERID = ", userID)
+	return userID, err
 }
 
 // makeCreateHandler creates the handler logic
@@ -95,19 +123,18 @@ func makeCreateHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeCreateRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeCreateRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.CreateRequest{}, err
 	}
-	//TODO make request to account microservice
-	myAccount, err := getAccount(token)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("myAccount = ", myAccount.Id)
+	r.Body = rdr2
 	req := endpoint.CreateRequest{}
-	req.Ad.AccountID = myAccount.Id
+	req.Ad.AccountID = bson.ObjectIdHex(userID)
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -138,19 +165,18 @@ func makeUpdateHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeUpdateRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeUpdateRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.UpdateRequest{}, err
 	}
-	//TODO make request to account microservice
-	myAccount, err := getAccount(token)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("myAccount = ", myAccount.Id)
+	r.Body = rdr2
 	req := endpoint.UpdateRequest{}
-	req.Ad.AccountID = myAccount.Id
+	req.Ad.AccountID = bson.ObjectIdHex(userID)
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -175,19 +201,18 @@ func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []ht
 // decodeDeleteRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeDeleteRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	token, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	userID, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.DeleteRequest{}, err
 	}
-	//TODO make request to account microservice
-	myAccount, err := getAccount(token)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("myAccount = ", myAccount.Id)
+	r.Body = rdr2
 	req := endpoint.DeleteRequest{}
-	req.Ad.AccountID = myAccount.Id
+	req.Ad.AccountID = bson.ObjectIdHex(userID)
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
@@ -212,11 +237,17 @@ func makeGetHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.
 // decodeGetRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	//since auth request is a POST we need to add a body
+	buf := []byte(`{}`)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	_, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.GetRequest{}, err
 	}
+	r.Body = rdr2
 	req := endpoint.GetRequest{}
 	return req, err
 }
@@ -266,11 +297,16 @@ func makeGetAllByUserHandler(m *mux.Router, endpoints endpoint.Endpoints, option
 // decodeGetAllByUserRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeGetAllByUserRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	_, err := IsAuthorized(r)
+	buf, _ := ioutil.ReadAll(r.Body)
+	rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
 
+	r.Body = rdr1
+	_, err := checkToken(r)
 	if err != nil {
-		return nil, err
+		return endpoint.GetAllByUserRequest{}, err
 	}
+	r.Body = rdr2
 	req := endpoint.GetAllByUserRequest{}
 	err = json.NewDecoder(r.Body).Decode(&req)
 	return req, err
