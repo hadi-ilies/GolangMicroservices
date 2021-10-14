@@ -18,6 +18,7 @@ Note: we need to install GrantZheng version bcs the real version is not updated 
 ## Documentation
  * https://medium.com/@kujtimii.h/creating-a-todo-app-using-gokit-cli-20f066a58e1
  * https://golang.org/doc/
+ * https://learn.vonage.com/blog/2020/03/13/using-jwt-for-authentication-in-a-golang-application-dr/#
  * https://grpc.io/
 
 ## Authors

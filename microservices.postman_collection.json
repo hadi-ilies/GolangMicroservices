@@ -1,0 +1,500 @@
+{
+	"info": {
+		"_postman_id": "ca2eff23-5e11-4662-bcef-831e9d33ebb8",
+		"name": "microservices",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "signUp",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account\": {\n        \"email\": \"hadi3@gmail.com\",\n        \"username\": \"Caramelos\",\n        \"password\": \"LOLILOL\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/signUp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"signUp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8081/signIn",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"auth\": {\n        \"email\": \"hadi@gmail.com\",\n        \"password\": \"password1\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/signIn",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"signIn"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8802/",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MTk0Mzg3MzYsImlzcyI6Imp3dGdvLmlvIn0.W4IeA41QbYs_yz56ez-t5boxevax6WZ6eykBO8xHkvc",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8802/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8802",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8802/me",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzUzNzksImlzcyI6Imp3dGdvLmlvIn0.QqTfUgJInWiBERShBPi8j3jwUkOa1g7mG284qfIWjyc",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8081/me",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"me"
+					],
+					"query": [
+						{
+							"key": "Authorization",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA2NDQzODAsImlzcyI6Imp3dGdvLmlvIn0.idAiacHVJ7ZKs5xjMXGNU-KLHV07sVQDrzY625uB8cY",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MTk0Mzg3MzYsImlzcyI6Imp3dGdvLmlvIn0.W4IeA41QbYs_yz56ez-t5boxevax6WZ6eykBO8xHkvc",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8802/",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Proxy-Authorization",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MTk0Mzg3MzYsImlzcyI6Imp3dGdvLmlvIn0.W4IeA41QbYs_yz56ez-t5boxevax6WZ6eykBO8xHkvc",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8802/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8802",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8802/add-funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MTk0Mzg3MzYsImlzcyI6Imp3dGdvLmlvIn0.W4IeA41QbYs_yz56ez-t5boxevax6WZ6eykBO8xHkvc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"funds\": 10\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/add-funds",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"add-funds"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8800/createAd",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzUzNzksImlzcyI6Imp3dGdvLmlvIn0.QqTfUgJInWiBERShBPi8j3jwUkOa1g7mG284qfIWjyc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"ad\": {\n       \"title\": \"Add 7\",\n       \"description\": \"my new ad\",\n       \"price\": 120,\n       \"picture\": \"http://my_photo\"\n   } \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/createAd",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"createAd"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8082/get-all-by-user",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzUzNzksImlzcyI6Imp3dGdvLmlvIn0.QqTfUgJInWiBERShBPi8j3jwUkOa1g7mG284qfIWjyc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_id\": \"609d52975d266004c83834f5\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/get-all-by-user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"get-all-by-user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8082/",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzUzNzksImlzcyI6Imp3dGdvLmlvIn0.QqTfUgJInWiBERShBPi8j3jwUkOa1g7mG284qfIWjyc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						""
+					]
+				},
+				"description": "get all ads"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8082/",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA2NjQ1MTgsImlzcyI6Imp3dGdvLmlvIn0.tysWYcnxk5_-QEg40LXIXYTAmIfnPTrlfyWTeclVzfw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"ad\": {\n       \"id\": \"60991a593f6b5d04c96678f1\",\n       \"title\": \"Add 2\",\n       \"description\": \"my new ad\",\n       \"price\": 250,\n       \"picture\": \"http://my_photo\"\n   } \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						""
+					]
+				},
+				"description": "update add"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8082/",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA2NjQ1MTgsImlzcyI6Imp3dGdvLmlvIn0.tysWYcnxk5_-QEg40LXIXYTAmIfnPTrlfyWTeclVzfw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ad\": {\n        \"id\": \"6099246d294f4d04c77dffa9\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/reject",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzY1ODQsImlzcyI6Imp3dGdvLmlvIn0.v2ssj6WZDueHzchSBJYBX1LRirKmgxWG0hsucs0nS8Q",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"transaction\": \n   {\n       \"id\": \"609d56e3644f8504ceaee201\",\n       \"ad_id\": \"609d52b1f9169b04d3332285\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/reject",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"reject"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/accept",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzY1ODQsImlzcyI6Imp3dGdvLmlvIn0.v2ssj6WZDueHzchSBJYBX1LRirKmgxWG0hsucs0nS8Q",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"transaction\": \n   {\n       \"id\": \"609d56e3644f8504ceaee201\",\n       \"ad_id\": \"609d52b1f9169b04d3332285\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/accept",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"accept"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/get-all",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzY1ODQsImlzcyI6Imp3dGdvLmlvIn0.v2ssj6WZDueHzchSBJYBX1LRirKmgxWG0hsucs0nS8Q",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8083/get-all",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"get-all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create transaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJiaWxsaW5nLmp3dGdvLmlvIiwiYXV0aG9yaXplZCI6dHJ1ZSwiY2xpZW50IjoiS3Jpc3NhbmF3YXQiLCJleHAiOjE2MjA5MzM3MzgsImlzcyI6Imp3dGdvLmlvIn0.54jWyXtICTmtyfmYnpAyuaK86wS6h8VaOCVG7KVubjQ",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction\": {\n        \"ad_id\": \"609d52b1f9169b04d3332285\",\n        \"messages\": [\"1\", \"2\", \"3\"],\n        \"bids\": [10,30,23]\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
